@@ -10,7 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "docx-pdf": "^0.0.1",
+    "docxtemplater": "^3.65.2",
     "firebase": "^12.0.0",
+    "libreoffice-convert": "^1.6.1",
+    "pizzip": "^3.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.7.1"

@@ -8,10 +8,9 @@ export default function PreencherDocumentos() {
   const [selectedPdf, setSelectedPdf] = useState('');
 
   const pdfTemplates = [
-    { value: 'contrato_servico', label: 'Contrato de Serviço' },
-    { value: 'orcamento', label: 'Orçamento' },
-    { value: 'recibo', label: 'Recibo' },
-    // Add more options as needed
+    { value: 'procuracao', label: 'Procuração' },
+    { value: 'template2', label: 'template 2' },
+    { value: 'template3', label: 'template 3' },
   ];
 
   useEffect(() => {
@@ -27,18 +26,64 @@ export default function PreencherDocumentos() {
     fetchClientes();
   }, []);
 
-  const handleGenerateDocument = () => {
+  const handleGenerateDocument = async () => {
     if (!selectedPdf || !selectedClienteId) {
       alert('Por favor, selecione o PDF e o cliente.');
       return;
     }
 
     const cliente = clientes.find(c => c.id === selectedClienteId);
-    console.log('Gerando documento:', selectedPdf, cliente);
+    if (!cliente) {
+      alert("Cliente não encontrado.");
+      return;
+    }
 
-    // 👉 Replace this with your document generation logic
-    alert(`Documento "${selectedPdf}" será gerado para ${cliente.nome}`);
+    try {
+      const response = await fetch('http://localhost:3001/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          templateName: selectedPdf, // e.g., 'procuracao'
+          data: {
+            nome: cliente.nome,
+            cpf: cliente.cpf,
+            rg: cliente.rg,
+            cnh: cliente.cnh,
+            dataNascimento: cliente.dataNascimento,
+            profissao: cliente.profissao,
+            enderecoResidencial: cliente.enderecoResidencial,
+            estadoCivil: cliente.estadoCivil,
+            razaoSocial: cliente.empresa?.razaoSocial || '',
+            cnpj: cliente.empresa?.cnpj || '',
+            enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao gerar documento");
+      }
+
+      const blob = await response.blob();
+
+      // Trigger download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedPdf}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error("Erro ao gerar o documento:", error);
+      alert("Erro ao gerar o documento. Verifique o console.");
+    }
   };
+
 
   return (
     <div>
