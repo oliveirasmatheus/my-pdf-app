@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import CadastroCliente from './pages/CadastroCliente';
 import CadastroTerreno from './pages/CadastroTerreno';
+import PreencherDocumentos from './pages/PreencherDocumentos';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/cadastro-cliente" element={<CadastroCliente />} />
             <Route path="/cadastro-terreno" element={<CadastroTerreno />} />
+            <Route path="/preencher-documentos" element={<PreencherDocumentos />} />
           </Routes>
         </div>
       </div>

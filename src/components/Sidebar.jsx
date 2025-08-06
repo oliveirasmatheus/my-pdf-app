@@ -10,6 +10,7 @@ export default function Sidebar() {
           <li><NavLink to="/">Home</NavLink></li>
           <li><NavLink to="/cadastro-cliente">Cadastro Cliente</NavLink></li>
           <li><NavLink to="/cadastro-terreno">Cadastro Terreno</NavLink></li>
+          <li><NavLink to="/preencher-documentos">Preencher Documentos</NavLink></li>
         </ul>
       </nav>
     </div>

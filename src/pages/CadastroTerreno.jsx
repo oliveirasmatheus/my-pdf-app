@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import db from '../firebaseConfig';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 export default function CadastroTerreno() {
   const [terreno, setTerreno] = useState({
@@ -9,6 +11,8 @@ export default function CadastroTerreno() {
     endereco: '',
   });
 
+  const [terrenos, setTerrenos] = useState([]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setTerreno((prev) => ({
@@ -17,21 +21,71 @@ export default function CadastroTerreno() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Terreno data:', terreno);
-    // You can later associate this with a cliente ID in Firestore
+    try {
+      await addDoc(collection(db, 'terrenos'), terreno);
+      setTerreno({
+        numeroMatricula: '',
+        setor: '',
+        quadra: '',
+        lote: '',
+        endereco: '',
+      });
+      fetchTerrenos(); // Refresh list
+    } catch (error) {
+      console.error('Erro ao salvar terreno:', error);
+    }
   };
 
+  const fetchTerrenos = async () => {
+    const querySnapshot = await getDocs(collection(db, 'terrenos'));
+    const data = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setTerrenos(data);
+  };
+
+  useEffect(() => {
+    fetchTerrenos();
+  }, []);
+
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Cadastro de Terreno</h2>
-      <input name="numeroMatricula" placeholder="Número da Matrícula" onChange={handleChange} />
-      <input name="setor" placeholder="Setor" onChange={handleChange} />
-      <input name="quadra" placeholder="Quadra" onChange={handleChange} />
-      <input name="lote" placeholder="Lote" onChange={handleChange} />
-      <input name="endereco" placeholder="Endereço do Terreno" onChange={handleChange} />
-      <button type="submit">Salvar Terreno</button>
-    </form>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <h2>Cadastro de Terreno</h2>
+        <input name="numeroMatricula" placeholder="Número da Matrícula" value={terreno.numeroMatricula} onChange={handleChange} />
+        <input name="setor" placeholder="Setor" value={terreno.setor} onChange={handleChange} />
+        <input name="quadra" placeholder="Quadra" value={terreno.quadra} onChange={handleChange} />
+        <input name="lote" placeholder="Lote" value={terreno.lote} onChange={handleChange} />
+        <input name="endereco" placeholder="Endereço do Terreno" value={terreno.endereco} onChange={handleChange} />
+        <button type="submit">Salvar Terreno</button>
+      </form>
+
+      <h2>Terrenos Cadastrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Número da Matrícula</th>
+            <th>Setor</th>
+            <th>Quadra</th>
+            <th>Lote</th>
+            <th>Endereço</th>
+          </tr>
+        </thead>
+        <tbody>
+          {terrenos.map((terreno) => (
+            <tr key={terreno.id}>
+              <td>{terreno.numeroMatricula}</td>
+              <td>{terreno.setor}</td>
+              <td>{terreno.quadra}</td>
+              <td>{terreno.lote}</td>
+              <td>{terreno.endereco}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
