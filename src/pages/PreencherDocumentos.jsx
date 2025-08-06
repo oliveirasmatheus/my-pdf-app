@@ -13,6 +13,8 @@ export default function PreencherDocumentos() {
     { value: 'template3', label: 'template 3' },
   ];
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     const fetchClientes = async () => {
       const querySnapshot = await getDocs(collection(db, 'clientes'));
@@ -39,7 +41,7 @@ export default function PreencherDocumentos() {
     }
 
     try {
-      const response = await fetch('https://pdf-backend-11un.onrender.com/generate', {
+      const response = await fetch(`${API_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
