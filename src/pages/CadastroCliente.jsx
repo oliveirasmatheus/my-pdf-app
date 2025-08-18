@@ -3,7 +3,6 @@ import { collection, addDoc, getDocs } from 'firebase/firestore';
 import db from '../firebaseConfig';
 import './CadastroCliente.css';
 
-
 export default function CadastroCliente() {
   const [cliente, setCliente] = useState({
     nome: '',
@@ -22,18 +21,29 @@ export default function CadastroCliente() {
 
   const [clientesCadastrados, setClientesCadastrados] = useState([]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setCliente((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+
+  const numericFields = ['cpf', 'rg', 'cnh'];
+  const newValue =
+    numericFields.includes(name) ? value.replace(/\D/g, '') : value;
+
+  setCliente((prev) => ({
+    ...prev,
+    [name]: type === 'checkbox' ? checked : newValue,
+  }));
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
+      
+      if (!/^\d+$/.test(cliente.cpf) || !/^\d+$/.test(cliente.rg) || !/^\d+$/.test(cliente.cnh)) {
+        alert('CPF, RG e CNH devem conter apenas números.');
+        return;
+      }
+
       const clienteData = {
         nome: cliente.nome,
         cpf: cliente.cpf,
@@ -70,7 +80,7 @@ export default function CadastroCliente() {
         enderecoEmpresa: '',
       });
 
-      fetchClientes(); // Reload list
+      fetchClientes();
     } catch (err) {
       console.error('Erro ao adicionar cliente:', err);
     }
@@ -94,33 +104,42 @@ export default function CadastroCliente() {
   }, []);
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+    <div className="cadastro-container">
+      <form className="form-cliente" onSubmit={handleSubmit}>
         <h2>Cadastro de Cliente</h2>
+        <div className="grid-2">
+          <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} />
+          <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" pattern="\d*" />
+          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" pattern="\d*" />
+          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" pattern="\d*" />
+          <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} />
+          <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} />
+          <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} />
+          <input name="estadoCivil" placeholder="Estado Civil" value={cliente.estadoCivil} onChange={handleChange} />
+        </div>
 
-        <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} />
-        <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} />
-        <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} />
-        <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} />
-        <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} />
-        <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} />
-        <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} />
-        <input name="estadoCivil" placeholder="Estado Civil" value={cliente.estadoCivil} onChange={handleChange} />
+        <div className="checkbox-container">
+          <label htmlFor="possuiEmpresa">Possui Empresa?</label>
+          <input
+            type="checkbox"
+            id="possuiEmpresa"
+            name="possuiEmpresa"
+            checked={cliente.possuiEmpresa}
+            onChange={handleChange}
+          />
+        </div>
 
-        <label>
-          <input type="checkbox" name="possuiEmpresa" checked={cliente.possuiEmpresa} onChange={handleChange} />
-          Possui Empresa?
-        </label>
+
 
         {cliente.possuiEmpresa && (
-          <>
+          <div className="grid-2">
             <input name="razaoSocial" placeholder="Razão Social" value={cliente.razaoSocial} onChange={handleChange} />
             <input name="cnpj" placeholder="CNPJ" value={cliente.cnpj} onChange={handleChange} />
             <input name="enderecoEmpresa" placeholder="Endereço da Empresa" value={cliente.enderecoEmpresa} onChange={handleChange} />
-          </>
+          </div>
         )}
 
-        <button type="submit">Salvar Cliente</button>
+        <button type="submit" className="submit-btn">Salvar Cliente</button>
       </form>
 
       <div>
