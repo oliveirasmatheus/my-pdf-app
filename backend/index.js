@@ -45,10 +45,9 @@ app.post("/generate", (req, res) => {
       safeData[key] = val !== undefined && val !== null ? String(val) : "";
     });
 
-    doc.setData(safeData);
-
+    // 🚀 Novo padrão: render diretamente com os dados
     try {
-      doc.render();
+      doc.render(safeData);
     } catch (error) {
       if (error.properties && error.properties.errors) {
         error.properties.errors.forEach((e) => {
