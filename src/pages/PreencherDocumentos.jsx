@@ -197,7 +197,7 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <button onClick={handleGenerateDocument}>Gerar Documento</button>
+      <button onClick={handleGenerateDocument} type="submit" className="submit-btn">Gerar Documento</button>
     </div>
   );
 }

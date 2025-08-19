@@ -71,3 +71,41 @@ input, select {
 .submit-btn:hover {
   background-color: #357abd;
 }
+/* Ações centralizadas na vertical */
+.acoes {
+  display: flex;
+  flex-direction: column; /* empilha os botões na vertical */
+  justify-content: center;
+  align-items: center;
+  gap: 6px; /* espaço entre eles */
+  border: none; /* remove borda extra da célula */
+}
+
+/* Botão base */
+.btn-editar,
+.btn-excluir {
+  width: 90px; /* largura fixa pra ficarem iguais */
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* Editar */
+.btn-editar {
+  background-color: #007bff;
+}
+.btn-editar:hover {
+  background-color: #0056b3;
+}
+
+/* Excluir */
+.btn-excluir {
+  background-color: #dc3545;
+}
+.btn-excluir:hover {
+  background-color: #a71d2a;
+}

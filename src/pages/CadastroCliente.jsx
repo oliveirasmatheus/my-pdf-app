@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import db from '../firebaseConfig';
 import './CadastroCliente.css';
 
@@ -20,13 +20,12 @@ export default function CadastroCliente() {
   });
 
   const [clientesCadastrados, setClientesCadastrados] = useState([]);
+  const [editandoId, setEditandoId] = useState(null);
 
+  // --- FORMATAÇÕES CPF/CNPJ ---
   const formatCPF = (value) => {
-    // Remove tudo que não seja número
-    const numericValue = value.replace(/\D/g, '').slice(0, 11); // máximo 11 dígitos
-
+    const numericValue = value.replace(/\D/g, '').slice(0, 11);
     let formatted = numericValue;
-
     if (numericValue.length > 3 && numericValue.length <= 6) {
       formatted = numericValue.replace(/(\d{3})(\d+)/, '$1.$2');
     } else if (numericValue.length > 6 && numericValue.length <= 9) {
@@ -34,16 +33,12 @@ export default function CadastroCliente() {
     } else if (numericValue.length > 9) {
       formatted = numericValue.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
     }
-
     return formatted;
   };
 
   const formatCNPJ = (value) => {
-    // Remove tudo que não é número
-    const numericValue = value.replace(/\D/g, '').slice(0, 14); // limita a 14 dígitos
-    
+    const numericValue = value.replace(/\D/g, '').slice(0, 14);
     let formatted = numericValue;
-
     if (numericValue.length > 2 && numericValue.length <= 5) {
       formatted = numericValue.replace(/(\d{2})(\d+)/, '$1.$2');
     } else if (numericValue.length > 5 && numericValue.length <= 8) {
@@ -53,22 +48,16 @@ export default function CadastroCliente() {
     } else if (numericValue.length > 12) {
       formatted = numericValue.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
     }
-
     return formatted;
   };
 
-
-
+  // --- INPUT CHANGE ---
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     let newValue = value;
 
-  if (name === 'cpf') {
-    newValue = formatCPF(value); // seu CPF já existente
-  } else if (name === 'cnpj') {
-    newValue = formatCNPJ(value);
-  }
+    if (name === 'cpf') newValue = formatCPF(value);
+    else if (name === 'cnpj') newValue = formatCNPJ(value);
 
     setCliente((prev) => ({
       ...prev,
@@ -76,10 +65,10 @@ export default function CadastroCliente() {
     }));
   };
 
+  // --- SALVAR OU EDITAR ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      
       if (!/^\d+$/.test(cliente.rg) || !/^\d+$/.test(cliente.cnh)) {
         alert('RG e CNH devem conter apenas números.');
         return;
@@ -104,7 +93,15 @@ export default function CadastroCliente() {
           : null,
       };
 
-      await addDoc(collection(db, 'clientes'), clienteData);
+      if (editandoId) {
+        // Atualiza
+        const clienteRef = doc(db, 'clientes', editandoId);
+        await updateDoc(clienteRef, clienteData);
+        setEditandoId(null);
+      } else {
+        // Novo cadastro
+        await addDoc(collection(db, 'clientes'), clienteData);
+      }
 
       setCliente({
         nome: '',
@@ -123,10 +120,11 @@ export default function CadastroCliente() {
 
       fetchClientes();
     } catch (err) {
-      console.error('Erro ao adicionar cliente:', err);
+      console.error('Erro ao salvar cliente:', err);
     }
   };
 
+  // --- BUSCAR CLIENTES ---
   const fetchClientes = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'clientes'));
@@ -144,15 +142,42 @@ export default function CadastroCliente() {
     fetchClientes();
   }, []);
 
+  // --- EDITAR CLIENTE ---
+  const handleEdit = (c) => {
+    setCliente({
+      nome: c.nome,
+      cpf: c.cpf,
+      rg: c.rg,
+      cnh: c.cnh,
+      dataNascimento: c.dataNascimento,
+      profissao: c.profissao,
+      endereco: c.enderecoResidencial,
+      estadoCivil: c.estadoCivil,
+      possuiEmpresa: !!c.empresa,
+      razaoSocial: c.empresa?.razaoSocial || '',
+      cnpj: c.empresa?.cnpj || '',
+      enderecoEmpresa: c.empresa?.enderecoEmpresa || '',
+    });
+    setEditandoId(c.id);
+  };
+
+  // --- DELETAR CLIENTE ---
+  const handleDelete = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      await deleteDoc(doc(db, 'clientes', id));
+      fetchClientes();
+    }
+  };
+
   return (
     <div className="cadastro-container">
       <form className="form-cliente" onSubmit={handleSubmit}>
-        <h2>Cadastro de Cliente</h2>
+        <h2>{editandoId ? 'Editar Cliente' : 'Cadastro de Cliente'}</h2>
         <div className="grid-2">
           <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} />
           <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" />
-          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" pattern="\d*" maxLength={10} />
-          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" pattern="\d*" maxLength={11} />
+          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" />
+          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" />
           <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} />
           <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} />
           <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} />
@@ -170,8 +195,6 @@ export default function CadastroCliente() {
           />
         </div>
 
-
-
         {cliente.possuiEmpresa && (
           <div className="grid-2">
             <input name="razaoSocial" placeholder="Razão Social" value={cliente.razaoSocial} onChange={handleChange} />
@@ -180,7 +203,9 @@ export default function CadastroCliente() {
           </div>
         )}
 
-        <button type="submit" className="submit-btn">Salvar Cliente</button>
+        <button type="submit" className="submit-btn">
+          {editandoId ? 'Atualizar Cliente' : 'Salvar Cliente'}
+        </button>
       </form>
 
       <div>
@@ -202,6 +227,7 @@ export default function CadastroCliente() {
                 <th>Empresa</th>
                 <th>CNPJ</th>
                 <th>Endereço Empresa</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -218,6 +244,12 @@ export default function CadastroCliente() {
                   <td>{c.empresa?.razaoSocial || '-'}</td>
                   <td>{c.empresa?.cnpj || '-'}</td>
                   <td>{c.empresa?.enderecoEmpresa || '-'}</td>
+                  <td>
+                    <div className="acoes">
+                      <button className="btn-editar" onClick={() => handleEdit(c)}>Editar</button>
+                      <button className="btn-excluir" onClick={() => handleDelete(c.id)}>Excluir</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import db from '../firebaseConfig';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import './CadastroCliente.css'; // Reaproveitando o CSS
 
 export default function CadastroTerreno() {
@@ -13,10 +13,11 @@ export default function CadastroTerreno() {
     endereco: '',
   });
 
+  const [editandoId, setEditandoId] = useState(null); // 👈 para saber se está editando
   const [terrenos, setTerrenos] = useState([]);
-
   const [clientes, setClientes] = useState([]);
 
+  // Buscar clientes
   const fetchClientes = async () => {
     const querySnapshot = await getDocs(collection(db, 'clientes'));
     const data = querySnapshot.docs.map((doc) => ({
@@ -30,32 +31,7 @@ export default function CadastroTerreno() {
     fetchClientes();
   }, []);
 
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTerreno((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, 'terrenos'), terreno);
-      setTerreno({
-        numeroMatricula: '',
-        setor: '',
-        quadra: '',
-        lote: '',
-        endereco: '',
-      });
-      fetchTerrenos(); 
-    } catch (error) {
-      console.error('Erro ao salvar terreno:', error);
-    }
-  };
-
+  // Buscar terrenos
   const fetchTerrenos = async () => {
     const querySnapshot = await getDocs(collection(db, 'terrenos'));
     const data = querySnapshot.docs.map((doc) => ({
@@ -69,10 +45,73 @@ export default function CadastroTerreno() {
     fetchTerrenos();
   }, []);
 
+  // Alteração dos inputs
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setTerreno((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Salvar ou atualizar terreno
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editandoId) {
+        // Atualizar
+        const terrenoRef = doc(db, 'terrenos', editandoId);
+        await updateDoc(terrenoRef, terreno);
+        setEditandoId(null);
+      } else {
+        // Criar novo
+        await addDoc(collection(db, 'terrenos'), terreno);
+      }
+
+      // Resetar form
+      setTerreno({
+        clienteId: '',
+        numeroMatricula: '',
+        setor: '',
+        quadra: '',
+        lote: '',
+        endereco: '',
+      });
+
+      fetchTerrenos();
+    } catch (error) {
+      console.error('Erro ao salvar terreno:', error);
+    }
+  };
+
+  // Editar terreno
+  const handleEdit = (t) => {
+    setTerreno({
+      clienteId: t.clienteId,
+      numeroMatricula: t.numeroMatricula,
+      setor: t.setor,
+      quadra: t.quadra,
+      lote: t.lote,
+      endereco: t.endereco,
+    });
+    setEditandoId(t.id);
+  };
+
+  // Excluir terreno
+  const handleDelete = async (id) => {
+    if (!window.confirm("Tem certeza que deseja excluir este terreno?")) return;
+    try {
+      await deleteDoc(doc(db, 'terrenos', id));
+      fetchTerrenos();
+    } catch (error) {
+      console.error("Erro ao excluir terreno:", error);
+    }
+  };
+
   return (
     <div className="cadastro-container">
       <form className="form-cliente" onSubmit={handleSubmit}>
-        <h2>Cadastro de Terreno</h2>
+        <h2>{editandoId ? "Editar Terreno" : "Cadastro de Terreno"}</h2>
         <div className="grid-2">
           <input
             name="numeroMatricula"
@@ -117,7 +156,9 @@ export default function CadastroTerreno() {
             ))}
           </select>
         </div>
-        <button type="submit" className="submit-btn">Salvar Terreno</button>
+        <button type="submit" className="submit-btn">
+          {editandoId ? "Atualizar Terreno" : "Salvar Terreno"}
+        </button>
       </form>
 
       <div>
@@ -134,6 +175,7 @@ export default function CadastroTerreno() {
                 <th>Quadra</th>
                 <th>Lote</th>
                 <th>Endereço</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -147,6 +189,12 @@ export default function CadastroTerreno() {
                     <td>{t.quadra}</td>
                     <td>{t.lote}</td>
                     <td>{t.endereco}</td>
+                    <td>
+                      <div className="acoes">
+                      <button onClick={() => handleEdit(t)} className="btn-editar">Editar</button>
+                      <button onClick={() => handleDelete(t.id)} className="btn-excluir">Excluir</button>
+                      </div>
+                    </td>
                   </tr>
                 )
               })}
