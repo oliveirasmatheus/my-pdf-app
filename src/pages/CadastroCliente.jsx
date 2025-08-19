@@ -21,26 +21,67 @@ export default function CadastroCliente() {
 
   const [clientesCadastrados, setClientesCadastrados] = useState([]);
 
-const handleChange = (e) => {
-  const { name, value, type, checked } = e.target;
+  const formatCPF = (value) => {
+    // Remove tudo que não seja número
+    const numericValue = value.replace(/\D/g, '').slice(0, 11); // máximo 11 dígitos
 
-  const numericFields = ['cpf', 'rg', 'cnh'];
-  const newValue =
-    numericFields.includes(name) ? value.replace(/\D/g, '') : value;
+    let formatted = numericValue;
 
-  setCliente((prev) => ({
-    ...prev,
-    [name]: type === 'checkbox' ? checked : newValue,
-  }));
-};
+    if (numericValue.length > 3 && numericValue.length <= 6) {
+      formatted = numericValue.replace(/(\d{3})(\d+)/, '$1.$2');
+    } else if (numericValue.length > 6 && numericValue.length <= 9) {
+      formatted = numericValue.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+    } else if (numericValue.length > 9) {
+      formatted = numericValue.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1.$2.$3-$4');
+    }
 
+    return formatted;
+  };
+
+  const formatCNPJ = (value) => {
+    // Remove tudo que não é número
+    const numericValue = value.replace(/\D/g, '').slice(0, 14); // limita a 14 dígitos
+    
+    let formatted = numericValue;
+
+    if (numericValue.length > 2 && numericValue.length <= 5) {
+      formatted = numericValue.replace(/(\d{2})(\d+)/, '$1.$2');
+    } else if (numericValue.length > 5 && numericValue.length <= 8) {
+      formatted = numericValue.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+    } else if (numericValue.length > 8 && numericValue.length <= 12) {
+      formatted = numericValue.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+    } else if (numericValue.length > 12) {
+      formatted = numericValue.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d+)/, '$1.$2.$3/$4-$5');
+    }
+
+    return formatted;
+  };
+
+
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    let newValue = value;
+
+  if (name === 'cpf') {
+    newValue = formatCPF(value); // seu CPF já existente
+  } else if (name === 'cnpj') {
+    newValue = formatCNPJ(value);
+  }
+
+    setCliente((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : newValue,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       
-      if (!/^\d+$/.test(cliente.cpf) || !/^\d+$/.test(cliente.rg) || !/^\d+$/.test(cliente.cnh)) {
-        alert('CPF, RG e CNH devem conter apenas números.');
+      if (!/^\d+$/.test(cliente.rg) || !/^\d+$/.test(cliente.cnh)) {
+        alert('RG e CNH devem conter apenas números.');
         return;
       }
 
@@ -109,9 +150,9 @@ const handleChange = (e) => {
         <h2>Cadastro de Cliente</h2>
         <div className="grid-2">
           <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} />
-          <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" pattern="\d*" />
-          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" pattern="\d*" />
-          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" pattern="\d*" />
+          <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" />
+          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" pattern="\d*" maxLength={10} />
+          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" pattern="\d*" maxLength={11} />
           <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} />
           <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} />
           <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} />
