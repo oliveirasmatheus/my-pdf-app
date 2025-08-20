@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import db from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import './PreencherDocumentos.css';
 
 export default function PreencherDocumentos() {
   const [clientes, setClientes] = useState([]);
@@ -11,8 +12,24 @@ export default function PreencherDocumentos() {
 
   const pdfTemplates = [
     { value: 'procuracao', label: 'Procuração' },
-    { value: 'terreno', label: 'Aprovação de Projeto' },
-    { value: 'template3', label: 'Template 3' },
+    { value: 'aprovacao_projeto', label: 'Aprovação de Projeto' },
+    { value: 'certidao_confrontacoes', label: 'Certidão de Confrontações' },
+    { value: 'levantamento_cadastral', label: 'Levantamento Cadastral' },
+    { value: 'ampliacao_construcao', label: 'Ampliação da Construção' },
+    { value: 'demolicao_predio', label: 'Demolição de Prédio' },
+    { value: 'pedido_prescricao', label: 'Pedido de Prescrição' },
+    { value: 'certidao_negativa', label: 'Certidão Negativa' },
+    { value: 'dm_declaracao_munic', label: 'DM – Declaração Munic.' },
+    { value: 'vistoria', label: 'Vistoria' },
+    { value: 'certidao_lancamento', label: 'Certidão de Lançamento' },
+    { value: 'devolucao_receita', label: 'Devolução de Receita' },
+    { value: 'habite_se', label: 'Habite-se' },
+    { value: 'certidao_valor_venal', label: 'Certidão de Valor Venal' },
+    { value: 'unificacao_lote', label: 'Unificação de lote' },
+    { value: 'levantamento_cadastral_2', label: 'Levantam. Cadastral' },
+    { value: 'certidao_demolicao', label: 'Certidão de Demolição' },
+    { value: 'desmembramento_lote', label: 'Desmembramento de lote' },
+    { value: 'regularizacao_obra', label: 'Regularização de obra' },
   ];
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -142,13 +159,12 @@ export default function PreencherDocumentos() {
     <div>
       <h2>Preencher Documentos</h2>
 
-      <div style={{ margin: '20px 0' }}>
+      <div className='form-group'>
         <label>
           Selecionar Documento:
           <select
             value={selectedPdf}
             onChange={(e) => setSelectedPdf(e.target.value)}
-            style={{ marginLeft: '10px' }}
           >
             <option value="">-- Selecione --</option>
             {pdfTemplates.map((pdf) => (
@@ -160,13 +176,12 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <div style={{ margin: '20px 0' }}>
+      <div className='form-group'>
         <label>
           Selecionar Cliente:
           <select
             value={selectedClienteId}
             onChange={(e) => setSelectedClienteId(e.target.value)}
-            style={{ marginLeft: '10px' }}
           >
             <option value="">-- Selecione --</option>
             {clientes.map((cliente) => (
@@ -178,13 +193,12 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <div style={{ margin: '20px 0' }}>
+      <div className='form-group'>
         <label>
           Selecionar Terreno:
           <select
             value={selectedTerrenoId}
             onChange={(e) => setSelectedTerrenoId(e.target.value)}
-            style={{ marginLeft: '10px' }}
             disabled={!terrenos.length}
           >
             <option value="">-- Selecione --</option>

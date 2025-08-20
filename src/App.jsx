@@ -22,21 +22,14 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* default -> login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* login sem sidebar */}
         <Route path="/login" element={<Login />} />
-
-        {/* dashboard com sidebar */}
         <Route element={<DashboardLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/cadastro-cliente" element={<CadastroCliente />} />
           <Route path="/cadastro-terreno" element={<CadastroTerreno />} />
           <Route path="/preencher-documentos" element={<PreencherDocumentos />} />
         </Route>
-
-        {/* rotas desconhecidas -> login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
