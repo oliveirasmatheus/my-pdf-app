@@ -22,7 +22,7 @@ export default function Sidebar() {
       <nav>
         <ul>
           <li>
-            <NavLink to="/home">
+            <NavLink to="/app">
               <Home size={18} className="icon" />
               {!collapsed && <span>Home</span>}
             </NavLink>

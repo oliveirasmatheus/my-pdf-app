@@ -1,56 +1,57 @@
-import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import db from '../firebaseConfig';
-import { useNavigate } from 'react-router-dom';
-import './Home.css';
+import { useEffect } from "react";
 
-export default function Home() {
-  const navigate = useNavigate();
-  const [totalClientes, setTotalClientes] = useState(0);
-  const [totalTerrenos, setTotalTerrenos] = useState(0);
+const Home = () => {
+    useEffect(() => {
+        // Atualiza título e meta
+        document.title = "Willian Oliveira Arquitetura | Projetos Residenciais e Comerciais";
 
-  useEffect(() => {
-    const fetchClientes = async () => {
-      const snapshot = await getDocs(collection(db, 'clientes'));
-      setTotalClientes(snapshot.size);
-    };
-    const fetchTerrenos = async () => {
-      const snapshot = await getDocs(collection(db, 'terrenos'));
-      setTotalTerrenos(snapshot.size);
-    };
-    fetchClientes();
-    fetchTerrenos();
-  }, []);
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+            metaDescription.setAttribute(
+                "content",
+                "Escritório de arquitetura em Cruzeiro do Sul/RS especializado em projetos residenciais e comerciais modernos e funcionais. Transformamos sua visão em realidade."
+            );
+        } else {
+            const meta = document.createElement("meta");
+            meta.name = "description";
+            meta.content =
+                "Escritório de arquitetura em Cruzeiro do Sul/RS especializado em projetos residenciais e comerciais modernos e funcionais. Transformamos sua visão em realidade.";
+            document.head.appendChild(meta);
+        }
 
-  return (
-    <div className="home-container">
-      <h1>Bem-vindo ao Sistema de Geração de Documentos!</h1>
+        // Carrega Google Fonts
+        const linkFont = document.createElement("link");
+        linkFont.rel = "stylesheet";
+        linkFont.href =
+            "https://fonts.googleapis.com/css2?family=Mulish:wght@400;700;800;900&display=swap";
+        document.head.appendChild(linkFont);
 
-      <div className="home-cards">
-        <div className="card">
-          <h2>Total de Clientes</h2>
-          <p>{totalClientes}</p>
-          <button onClick={() => navigate('/cadastro-cliente')}>Gerenciar Clientes</button>
-        </div>
+        // Adiciona CSS do Vue
+        const linkCSS = document.createElement("link");
+        linkCSS.rel = "stylesheet";
+        linkCSS.href = "/assets/index-Ph5UQlrA.css"; // coloque este arquivo em public/assets
+        document.head.appendChild(linkCSS);
 
-        <div className="card">
-          <h2>Total de Terrenos</h2>
-          <p>{totalTerrenos}</p>
-          <button onClick={() => navigate('/cadastro-terreno')}>Gerenciar Terrenos</button>
-        </div>
+        // Adiciona script do Vue
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "/assets/index-Ci0ylsPH.js"; // coloque este arquivo em public/assets
+        script.crossOrigin = "anonymous";
+        document.body.appendChild(script);
 
-        <div className="card">
-          <h2>Gerar Documento</h2>
-          {/* String invisível para alinhar o botão */}
-          <p style={{ visibility: 'hidden', margin: 15 }}>Espaço</p>
-          <button onClick={() => navigate('/preencher-documentos')}>Ir para Geração</button>
-        </div>
+        // Evita FOUC (opacity)
+        document.body.classList.add("loaded");
 
-      </div>
+        // Cleanup ao desmontar
+        return () => {
+            document.head.removeChild(linkFont);
+            document.head.removeChild(linkCSS);
+            document.body.removeChild(script);
+            document.body.classList.remove("loaded");
+        };
+    }, []);
 
-      <div className="home-footer">
-        <p>Escolha uma ação para começar.</p>
-      </div>
-    </div>
-  );
-}
+    return <div id="app"></div>;
+};
+
+export default Home;

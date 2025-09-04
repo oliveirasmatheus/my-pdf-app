@@ -1,44 +1,135 @@
-.home-container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  text-align: center;
-  padding: 0 1rem;
+/* Fonte principal */
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;700;800;900&display=swap');
+
+/* Tailwind base (já está no index.css do projeto se usas Tailwind) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset + suavização */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.home-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  justify-content: center;
-  margin-top: 2rem;
+/* Animações personalizadas */
+@keyframes float-vert {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
 }
 
-.card {
-  background: #f9f9f9;
-  border-radius: 12px;
-  padding: 1.5rem;
-  width: 250px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+@keyframes float-diag {
+
+    0%,
+    100% {
+        transform: translate(0) rotate(0);
+    }
+
+    50% {
+        transform: translate(-10px, -10px) rotate(3deg);
+    }
 }
 
-.card h2 {
-  margin-bottom: 1rem;
+@keyframes float-horiz {
+
+    0%,
+    100% {
+        transform: translate(0);
+    }
+
+    50% {
+        transform: translate(10px);
+    }
 }
 
-.card button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
+.animate-float-vert {
+    animation: float-vert 8s ease-in-out infinite;
 }
 
-.card button:hover {
-  background-color: #45a049;
+.animate-float-diag {
+    animation: float-diag 10s ease-in-out infinite;
 }
 
-.home-footer {
-  margin-top: 3rem;
-  font-style: italic;
+.animate-float-horiz {
+    animation: float-horiz 9s ease-in-out infinite;
+}
+
+.animation-delay-1s {
+    animation-delay: -1s;
+}
+
+.animation-delay-2s {
+    animation-delay: -2s;
+}
+
+.animation-delay-3s {
+    animation-delay: -3s;
+}
+
+.animation-delay-4s {
+    animation-delay: -4s;
+}
+
+.floating-icon {
+    position: absolute;
+    z-index: 0;
+    opacity: 0.8;
+}
+
+/* Cores personalizadas */
+.bg-wo-green {
+    background-color: #1A4D2E;
+}
+
+.text-wo-green {
+    color: #1A4D2E;
+}
+
+.bg-wo-brown {
+    background-color: #A07C5B;
+}
+
+.text-wo-brown {
+    color: #A07C5B;
+}
+
+.bg-wo-dark {
+    background-color: #1E1E1E;
+}
+
+.text-wo-dark {
+    color: #1E1E1E;
+}
+
+.bg-wo-light-gray {
+    background-color: #F5F5F5;
+}
+
+.bg-wo-off-white {
+    background-color: #E8E8E8;
+}
+
+.text-wo-off-white {
+    color: #E8E8E8;
+}
+
+/* Sombras extras */
+.text-shadow-lg {
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, .3);
+}
+
+/* Hover extras */
+.hover\\:scale-110:hover {
+    transform: scale(1.1);
+}
+
+.hover\\:-translate-y-1:hover {
+    transform: translateY(-0.25rem);
 }

@@ -1,43 +1,58 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
+import "./Login.css";
+import GoogleLogo from "../assets/google-logo.svg";
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const allowedEmails = ["matheus.oliveeira@gmail.com", "contato@arqwillianoliveira.com.br"];
 
-    if (username === 'willian' && password === '894378') {
-      // se quiser guardar estado de login:
-      // localStorage.setItem('isAuthenticated', 'true');
-      navigate('/home', { replace: true });
-    } else {
-      alert('Usuário ou senha incorretos!');
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/app", { replace: true });
+    } catch (error) {
+      console.error(error);
+      alert("Usuário ou senha incorretos!");
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      if (!allowedEmails.includes(user.email)) {
+        alert("Você não tem permissão para acessar!");
+        await auth.signOut(); // desloga imediatamente
+        return;
+      }
+
+      navigate("/app", { replace: true });
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao logar com Google");
+    }
+  };
+
+
   return (
     <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
+      <form className="login-form" onSubmit={handleEmailLogin}>
         <h2>Login</h2>
-        <input
-          type="text"
-          placeholder="Usuário"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
+        <img
+          src={GoogleLogo}
+          alt="Entrar com Google"
+          className="google-login-svg"
+          onClick={handleGoogleLogin}
         />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Entrar</button>
+
       </form>
     </div>
   );
