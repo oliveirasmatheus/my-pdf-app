@@ -21,6 +21,7 @@ export default function CadastroCliente() {
 
   const [clientesCadastrados, setClientesCadastrados] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
+  const [viewingId, setViewingId] = useState(null); // for mobile 'Detalhes' view (read-only)
 
   // --- FORMATAÇÕES CPF/CNPJ ---
   const formatCPF = (value) => {
@@ -69,8 +70,15 @@ export default function CadastroCliente() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (!/^\d+$/.test(cliente.rg) || !/^\d+$/.test(cliente.cnh)) {
-        alert('RG e CNH devem conter apenas números.');
+      // validate RG (required, only digits)
+      if (!/^\d+$/.test(cliente.rg)) {
+        alert('RG deve conter apenas números.');
+        return;
+      }
+
+      // validate CNH only if provided (allow empty/null)
+      if (cliente.cnh && !/^\d+$/.test(cliente.cnh)) {
+        alert('CNH deve conter apenas números.');
         return;
       }
 
@@ -78,7 +86,7 @@ export default function CadastroCliente() {
         nome: cliente.nome,
         cpf: cliente.cpf,
         rg: cliente.rg,
-        cnh: cliente.cnh,
+        cnh: cliente.cnh ? cliente.cnh : null,
         dataNascimento: cliente.dataNascimento,
         profissao: cliente.profissao,
         enderecoResidencial: cliente.endereco,
@@ -159,6 +167,7 @@ export default function CadastroCliente() {
       enderecoEmpresa: c.empresa?.enderecoEmpresa || '',
     });
     setEditandoId(c.id);
+    setViewingId(null);
   };
 
   // --- DELETAR CLIENTE ---
@@ -172,16 +181,16 @@ export default function CadastroCliente() {
   return (
     <div className="cadastro-container">
       <form className="form-cliente" onSubmit={handleSubmit}>
-        <h2>{editandoId ? 'Editar Cliente' : 'Cadastro de Cliente'}</h2>
+        <h2>{viewingId ? 'Visualizar Cliente' : editandoId ? 'Editar Cliente' : 'Cadastro de Cliente'}</h2>
         <div className="grid-2">
-          <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} />
-          <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" />
-          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" />
-          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" />
-          <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} />
-          <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} />
-          <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} />
-          <input name="estadoCivil" placeholder="Estado Civil" value={cliente.estadoCivil} onChange={handleChange} />
+          <input name="nome" placeholder="Nome" value={cliente.nome} onChange={handleChange} disabled={!!viewingId} />
+          <input name="cpf" placeholder="CPF" value={cliente.cpf} onChange={handleChange} inputMode="numeric" disabled={!!viewingId} />
+          <input name="rg" placeholder="RG" value={cliente.rg} onChange={handleChange} inputMode="numeric" disabled={!!viewingId} />
+          <input name="cnh" placeholder="CNH" value={cliente.cnh} onChange={handleChange} inputMode="numeric" disabled={!!viewingId} />
+          <input type="date" name="dataNascimento" value={cliente.dataNascimento} onChange={handleChange} disabled={!!viewingId} />
+          <input name="profissao" placeholder="Profissão" value={cliente.profissao} onChange={handleChange} disabled={!!viewingId} />
+          <input name="endereco" placeholder="Endereço Residencial" value={cliente.endereco} onChange={handleChange} disabled={!!viewingId} />
+          <input name="estadoCivil" placeholder="Estado Civil" value={cliente.estadoCivil} onChange={handleChange} disabled={!!viewingId} />
         </div>
 
         <div className="checkbox-container">
@@ -192,20 +201,23 @@ export default function CadastroCliente() {
             name="possuiEmpresa"
             checked={cliente.possuiEmpresa}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
         </div>
 
         {cliente.possuiEmpresa && (
           <div className="grid-2">
-            <input name="razaoSocial" placeholder="Razão Social" value={cliente.razaoSocial} onChange={handleChange} />
-            <input name="cnpj" placeholder="CNPJ" value={cliente.cnpj} onChange={handleChange} />
-            <input name="enderecoEmpresa" placeholder="Endereço da Empresa" value={cliente.enderecoEmpresa} onChange={handleChange} />
+            <input name="razaoSocial" placeholder="Razão Social" value={cliente.razaoSocial} onChange={handleChange} disabled={!!viewingId} />
+            <input name="cnpj" placeholder="CNPJ" value={cliente.cnpj} onChange={handleChange} disabled={!!viewingId} />
+            <input name="enderecoEmpresa" placeholder="Endereço da Empresa" value={cliente.enderecoEmpresa} onChange={handleChange} disabled={!!viewingId} />
           </div>
         )}
 
-        <button type="submit" className="submit-btn">
-          {editandoId ? 'Atualizar Cliente' : 'Salvar Cliente'}
-        </button>
+        {!viewingId && (
+          <button type="submit" className="submit-btn">
+            {editandoId ? 'Atualizar Cliente' : 'Salvar Cliente'}
+          </button>
+        )}
       </form>
 
       <div>
@@ -213,6 +225,7 @@ export default function CadastroCliente() {
         {clientesCadastrados.length === 0 ? (
           <p>Nenhum cliente cadastrado ainda.</p>
         ) : (
+          <div className="table-responsive">
           <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead>
               <tr>
@@ -248,12 +261,38 @@ export default function CadastroCliente() {
                     <div className="acoes">
                       <button className="btn-editar" onClick={() => handleEdit(c)}>Editar</button>
                       <button className="btn-excluir" onClick={() => handleDelete(c.id)}>Excluir</button>
+                      <button
+                        className="btn-detalhes"
+                        onClick={() => {
+                          // Open the top form in read-only mode on mobile
+                          setCliente({
+                            nome: c.nome,
+                            cpf: c.cpf,
+                            rg: c.rg,
+                            cnh: c.cnh,
+                            dataNascimento: c.dataNascimento,
+                            profissao: c.profissao,
+                            endereco: c.enderecoResidencial,
+                            estadoCivil: c.estadoCivil,
+                            possuiEmpresa: !!c.empresa,
+                            razaoSocial: c.empresa?.razaoSocial || '',
+                            cnpj: c.empresa?.cnpj || '',
+                            enderecoEmpresa: c.empresa?.enderecoEmpresa || '',
+                          });
+                          setViewingId(c.id);
+                          setEditandoId(null);
+                        }}
+                        aria-expanded={viewingId === c.id}
+                      >
+                        Detalhes
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

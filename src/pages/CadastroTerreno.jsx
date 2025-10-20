@@ -16,6 +16,7 @@ export default function CadastroTerreno() {
   const [editandoId, setEditandoId] = useState(null); // 👈 para saber se está editando
   const [terrenos, setTerrenos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [viewingId, setViewingId] = useState(null); // mobile 'Detalhes' read-only view
 
   // Buscar clientes
   const fetchClientes = async () => {
@@ -95,6 +96,7 @@ export default function CadastroTerreno() {
       endereco: t.endereco,
     });
     setEditandoId(t.id);
+    setViewingId(null);
   };
 
   // Excluir terreno
@@ -111,42 +113,48 @@ export default function CadastroTerreno() {
   return (
     <div className="cadastro-container">
       <form className="form-cliente" onSubmit={handleSubmit}>
-        <h2>{editandoId ? "Editar Terreno" : "Cadastro de Terreno"}</h2>
+        <h2>{viewingId ? 'Visualizar Terreno' : editandoId ? "Editar Terreno" : "Cadastro de Terreno"}</h2>
         <div className="grid-2">
           <input
             name="numeroMatricula"
             placeholder="Número da Matrícula"
             value={terreno.numeroMatricula}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
           <input
             name="setor"
             placeholder="Setor"
             value={terreno.setor}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
           <input
             name="quadra"
             placeholder="Quadra"
             value={terreno.quadra}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
           <input
             name="lote"
             placeholder="Lote"
             value={terreno.lote}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
           <input
             name="endereco"
             placeholder="Endereço do Terreno"
             value={terreno.endereco}
             onChange={handleChange}
+            disabled={!!viewingId}
           />
           <select
             name="clienteId"
             value={terreno.clienteId}
             onChange={handleChange}
+            disabled={!!viewingId}
           >
             <option value="">Selecione o Cliente</option>
             {clientes.map((c) => (
@@ -156,9 +164,11 @@ export default function CadastroTerreno() {
             ))}
           </select>
         </div>
-        <button type="submit" className="submit-btn">
-          {editandoId ? "Atualizar Terreno" : "Salvar Terreno"}
-        </button>
+        {!viewingId && (
+          <button type="submit" className="submit-btn">
+            {editandoId ? "Atualizar Terreno" : "Salvar Terreno"}
+          </button>
+        )}
       </form>
 
       <div>
@@ -166,6 +176,7 @@ export default function CadastroTerreno() {
         {terrenos.length === 0 ? (
           <p>Nenhum terreno cadastrado ainda.</p>
         ) : (
+          <div className="table-responsive">
           <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse', width: '100%' }}>
             <thead>
               <tr>
@@ -193,6 +204,23 @@ export default function CadastroTerreno() {
                       <div className="acoes">
                       <button onClick={() => handleEdit(t)} className="btn-editar">Editar</button>
                       <button onClick={() => handleDelete(t.id)} className="btn-excluir">Excluir</button>
+                      <button
+                        className="btn-detalhes"
+                        onClick={() => {
+                          setTerreno({
+                            clienteId: t.clienteId,
+                            numeroMatricula: t.numeroMatricula,
+                            setor: t.setor,
+                            quadra: t.quadra,
+                            lote: t.lote,
+                            endereco: t.endereco,
+                          });
+                          setViewingId(t.id);
+                          setEditandoId(null);
+                        }}
+                      >
+                        Detalhes
+                      </button>
                       </div>
                     </td>
                   </tr>
@@ -200,6 +228,7 @@ export default function CadastroTerreno() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

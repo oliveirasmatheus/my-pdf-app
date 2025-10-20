@@ -1,5 +1,9 @@
 /* base para ocupar a tela e evitar margens */
+/* make sure the app fills the viewport and sizing is predictable */
+*, *::before, *::after { box-sizing: border-box; }
+
 html, body, #root {
+  min-height: 100vh;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -7,9 +11,7 @@ html, body, #root {
 
 #root {
   width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+  min-height: 100vh;
 }
 
 
@@ -17,7 +19,7 @@ html, body, #root {
 /* ----- LAYOUT DO DASHBOARD (sidebar + conteúdo) ----- */
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 /* Sidebar fixa */
@@ -29,6 +31,9 @@ html, body, #root {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  min-height: 100vh; /* allow sidebar grow but not overflow page */
+  max-height: 100vh;
+  overflow: auto;    /* internal scroll if content is tall */
 }
 
 /* Conteúdo ocupa o resto com scroll só aqui */
@@ -38,4 +43,53 @@ html, body, #root {
   padding: 20px;
   overflow-y: auto;
   transition: all 0.3s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column; /* sidebar becomes top bar */
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    padding: 0.5rem 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    position: sticky; /* keep at top but take space */
+    top: 0;
+    z-index: 50;
+    /* override desktop full-height on mobile */
+    min-height: auto;
+    max-height: none;
+  }
+
+  .main-content {
+    padding: 12px;
+    height: auto;
+    /* ensure main content is not covered by the topbar */
+    padding-top: 72px; /* adjust if your header height differs */
+  }
+
+  /* Reduce horizontal padding on very small devices to maximize content width */
+  @media (max-width: 480px) {
+    .main-content {
+      padding-left: 8px;
+      padding-right: 8px;
+      padding-top: 68px;
+    }
+
+    /* Containers like .cadastro-container should tighten spacing */
+    .cadastro-container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  /* make sure content doesn't hide under fixed headers */
+  .main-content--with-topbar {
+    padding-top: 12px;
+  }
 }

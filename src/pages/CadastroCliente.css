@@ -109,3 +109,95 @@ input, select {
 .btn-excluir:hover {
   background-color: #a71d2a;
 }
+
+/* Responsive tables: allow horizontal scroll on small screens */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make the first column sticky so users can see the name while scrolling horizontally */
+.table-responsive table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-responsive thead th:first-child,
+.table-responsive tbody td:first-child {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 2;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+}
+
+/* Hide less important columns on very small screens to reduce horizontal width */
+@media (max-width: 480px) {
+
+  /* On very small screens, show only Nome (1) and Ações (last). Hide others */
+  .table-responsive thead th,
+  .table-responsive tbody td {
+    display: table-cell; /* reset */
+  }
+  /* Hide all columns except first and last */
+  .table-responsive thead th:not(:first-child):not(:last-child),
+  .table-responsive tbody td:not(:first-child):not(:last-child) {
+    display: none;
+  }
+
+  /* Make action buttons more compact */
+  .acoes {
+    gap: 4px;
+  }
+  .btn-editar, .btn-excluir { padding: 6px 6px; font-size: 13px; }
+}
+
+/* For slightly larger phones, allow readable table but keep scroll */
+@media (max-width: 768px) {
+  table { font-size: 14px; }
+}
+
+/* Details row styles (visible when a row is expanded on mobile) */
+.details-row td {
+  background: #fafafa;
+  padding: 10px 12px;
+}
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px 16px;
+}
+
+/* Detalhes button: hidden on desktop, visible on small screens */
+.btn-detalhes {
+  display: none;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+@media (max-width: 600px) {
+  .btn-detalhes { display: inline-block; }
+}
+
+@media (max-width: 600px) {
+  .form-cliente {
+    padding: 1rem;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  .acoes {
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .btn-editar, .btn-excluir {
+    width: auto;
+    padding: 6px 8px;
+  }
+}

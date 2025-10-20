@@ -4,12 +4,29 @@ const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
+const libre = require('libreoffice-convert');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve raw .docx templates so frontend can fetch them (e.g. GET /templates/procuracao)
+app.get('/templates/:name', (req, res) => {
+  const name = req.params.name;
+  const filePath = path.join(__dirname, 'templates', `${name}.docx`);
+  if (!fs.existsSync(filePath)) {
+    console.error('Template not found:', filePath);
+    return res.status(404).send('Template not found');
+  }
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error sending template:', err);
+      res.status(err.status || 500).send('Failed to send template');
+    }
+  });
+});
 
 app.post("/generate", (req, res) => {
   const { templateName, data } = req.body;
@@ -60,6 +77,28 @@ app.post("/generate", (req, res) => {
 
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
+    // If the client requests PDF (body.output === 'pdf' or ?format=pdf), convert
+    // the generated DOCX buffer to PDF using libreoffice-convert and return PDF.
+    const wantsPdf = (req.body && req.body.output === 'pdf') || (req.query && req.query.format === 'pdf');
+    if (wantsPdf) {
+      try {
+        libre.convert(buf, '.pdf', undefined, (err, pdfBuf) => {
+          if (err) {
+            console.error('Conversion to PDF failed. Is LibreOffice installed on the host?', err);
+            return res.status(500).send('Failed to convert to PDF. Ensure LibreOffice is installed on the server.');
+          }
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename=${templateName}.pdf`);
+          res.send(pdfBuf);
+        });
+        return;
+      } catch (convErr) {
+        console.error('Conversion error', convErr);
+        return res.status(500).send('PDF conversion error');
+      }
+    }
+
+    // Default: send DOCX
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

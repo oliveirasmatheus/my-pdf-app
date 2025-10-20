@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import db from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import './PreencherDocumentos.css';
+// Note: server-side PDF conversion will be requested; keep frontend simple
 
 export default function PreencherDocumentos() {
   const [clientes, setClientes] = useState([]);
@@ -9,6 +10,11 @@ export default function PreencherDocumentos() {
   const [terrenos, setTerrenos] = useState([]);
   const [selectedTerrenoId, setSelectedTerrenoId] = useState('');
   const [selectedPdf, setSelectedPdf] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  function Spinner() {
+    return <span className="pd-spinner" aria-hidden="true" />;
+  }
 
   const pdfTemplates = [
     { value: 'procuracao', label: 'Procuração' },
@@ -33,8 +39,10 @@ export default function PreencherDocumentos() {
   ];
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const resolvedApiUrl = (API_URL || 'http://localhost:3001').replace(/\/$/, '');
+  // expose for quick debugging
+  if (typeof window !== 'undefined') window.__VITE_API_URL = resolvedApiUrl;
 
-  // Buscar clientes
   useEffect(() => {
     const fetchClientes = async () => {
       const querySnapshot = await getDocs(collection(db, 'clientes'));
@@ -47,7 +55,6 @@ export default function PreencherDocumentos() {
     fetchClientes();
   }, []);
 
-  // Buscar terrenos quando cliente muda
   useEffect(() => {
     const fetchTerrenos = async () => {
       if (!selectedClienteId) {
@@ -67,7 +74,7 @@ export default function PreencherDocumentos() {
         ...doc.data(),
       }));
       setTerrenos(fetchedTerrenos);
-      setSelectedTerrenoId(''); // resetar seleção
+      setSelectedTerrenoId('');
     };
 
     fetchTerrenos();
@@ -82,6 +89,35 @@ export default function PreencherDocumentos() {
     const cliente = clientes.find(c => c.id === selectedClienteId);
     const terreno = terrenos.find(t => t.id === selectedTerrenoId);
 
+    if (!cliente) {
+      alert('Cliente não encontrado.');
+      return;
+    }
+
+    // Optional: If terreno is required for certain templates, add condition here
+    if (!terreno) {
+      const terrainRequiredTemplates = [
+        'aprovacao_projeto',
+        'certidao_confrontacoes',
+        'levantamento_cadastral',
+        'ampliacao_construcao',
+        'demolicao_predio',
+        'vistoria',
+        'certidao_lancamento',
+        'habite_se',
+        'certidao_valor_venal',
+        'unificacao_lote',
+        'levantamento_cadastral_2',
+        'certidao_demolicao',
+        'desmembramento_lote',
+        'regularizacao_obra',
+      ];
+      if (terrainRequiredTemplates.includes(selectedPdf)) {
+        alert('Por favor, selecione um terreno.');
+        return;
+      }
+    }
+
     const today = new Date();
     const dia = String(today.getDate()).padStart(2, '0');
     const ano = today.getFullYear();
@@ -91,75 +127,81 @@ export default function PreencherDocumentos() {
     ];
     const mes = meses[today.getMonth()];
 
-    if (!cliente) {
-      alert("Cliente não encontrado.");
-      return;
+    let templateName = selectedPdf;
+    if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
+      templateName = 'procuracaoSemEmpresa';
     }
 
+    const dataToSend = {
+      nome: cliente.nome,
+      cpf: cliente.cpf,
+      rg: cliente.rg,
+      cnh: cliente.cnh,
+      dataNascimento: cliente.dataNascimento,
+      profissao: cliente.profissao,
+      enderecoResidencial: cliente.enderecoResidencial,
+      estadoCivil: cliente.estadoCivil,
+      razaoSocial: cliente.empresa?.razaoSocial || '',
+      cnpj: cliente.empresa?.cnpj || '',
+      enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
+      dia,
+      mes,
+      ano
+    };
+
+    if (terreno) {
+      dataToSend.endereco = terreno.endereco;
+      dataToSend.setor = terreno.setor;
+      dataToSend.quadra = terreno.quadra;
+      dataToSend.lote = terreno.lote;
+    }
+
+    // New flow: request server-side PDF conversion (backend will render DOCX and convert to PDF)
+    setIsGenerating(true);
     try {
-      let templateName = selectedPdf;
-      if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
-        templateName = 'procuracaoSemEmpresa';
-      }
-
-      // Monta os dados para enviar, incluindo terreno apenas se selecionado
-      const dataToSend = {
-        nome: cliente.nome,
-        cpf: cliente.cpf,
-        rg: cliente.rg,
-        cnh: cliente.cnh,
-        dataNascimento: cliente.dataNascimento,
-        profissao: cliente.profissao,
-        enderecoResidencial: cliente.enderecoResidencial,
-        estadoCivil: cliente.estadoCivil,
-        razaoSocial: cliente.empresa?.razaoSocial || '',
-        cnpj: cliente.empresa?.cnpj || '',
-        enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
-        dia,
-        mes,
-        ano
-      };
-
-      if (terreno) {
-        dataToSend.endereco = terreno.endereco;
-        dataToSend.setor = terreno.setor;
-        dataToSend.quadra = terreno.quadra;
-        dataToSend.lote = terreno.lote;
-      }
-
-      const response = await fetch(`${API_URL}/generate`, {
+      const url = `${resolvedApiUrl}/generate`;
+      console.log('Requesting PDF from', url);
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateName,
-          data: dataToSend
-        }),
+        body: JSON.stringify({ templateName, data: dataToSend, output: 'pdf' }),
       });
 
-      if (!response.ok) throw new Error("Erro ao gerar documento");
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(text || `${response.status} ${response.statusText}`);
+      }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${selectedPdf}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  // create a safe filename: selectedPdf + client name (spaces -> underscores, strip unsafe chars)
+  const rawName = `${selectedPdf}_${cliente.nome || 'document'}`;
+  const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+  a.download = `${safeName}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
 
     } catch (error) {
-      console.error("Erro ao gerar o documento:", error);
-      alert("Erro ao gerar o documento. Verifique o console.");
+      console.error('Erro ao gerar o documento:', error);
+      alert('Erro ao gerar o documento. Verifique o console para detalhes.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
 
-  return (
-    <div>
-      <h2>Preencher Documentos</h2>
 
-      <div className='form-group'>
+  return (
+    <div className="cadastro-container">
+  <h2>Preencher Documentos</h2>
+
+  <div className="form-cliente">
+  <div style={{ padding: 0 }}>
+  <div className="form-group">
         <label>
           Selecionar Documento:
           <select
@@ -176,7 +218,7 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <div className='form-group'>
+      <div className="form-group">
         <label>
           Selecionar Cliente:
           <select
@@ -193,7 +235,7 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <div className='form-group'>
+      <div className="form-group">
         <label>
           Selecionar Terreno:
           <select
@@ -211,7 +253,17 @@ export default function PreencherDocumentos() {
         </label>
       </div>
 
-      <button onClick={handleGenerateDocument} type="submit" className="submit-btn">Gerar Documento</button>
+      <button
+        onClick={handleGenerateDocument}
+        type="button"
+        className="submit-btn"
+        disabled={isGenerating}
+      >
+        {isGenerating ? 'Gerando...' : 'Gerar Documento'} {isGenerating && <Spinner />}
+      </button>
+      </div>
+      </div>
+      {/* generation handled server-side now; no hidden container required */}
     </div>
   );
 }

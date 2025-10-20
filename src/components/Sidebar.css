@@ -53,6 +53,91 @@
   transition: background 0.2s;
 }
 
+/* Responsive: convert sidebar to top bar on small screens */
+@media (max-width: 768px) {
+  .sidebar {
+    height: auto;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    max-height: none;
+  }
+
+  .logo-container img {
+    width: 100px;
+  }
+  /* align logo vertically with icons on mobile */
+  .logo-container {
+    margin-bottom: 0;
+    align-items: center;
+  }
+
+  /* hide collapse button on mobile (no close action) */
+  .collapse-btn { display: none; }
+
+  .sidebar ul {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .sidebar li {
+    margin: 0;
+  }
+
+  .sidebar a {
+    padding: 8px;
+    border-radius: 6px;
+  }
+  /* ensure nav doesn't overlap content */
+  nav { z-index: 60; }
+}
+
+/* On very small screens show icons only to save horizontal space */
+@media (max-width: 480px) {
+  .sidebar {
+    padding: 6px 8px;
+  }
+
+  .logo-container img {
+    width: 56px;
+  }
+
+  .sidebar ul {
+    display: flex;
+    gap: 6px;
+    /* remove margin-left so we control spacing with flex */
+    margin-left: 0;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between; /* spread items across width */
+  }
+
+  /* hide link text but keep icons visible */
+  .sidebar a span {
+    display: none;
+  }
+
+  .sidebar a {
+    padding: 6px;
+    flex: 1; /* allow each link to take equal space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Better distribution: ensure logo doesn't eat remaining space and list items flex evenly */
+@media (max-width: 480px) {
+  .logo-container { flex: 0 0 auto; }
+  .sidebar ul { flex: 1 1 auto; }
+  .sidebar li { flex: 1 1 0; display: flex; justify-content: center; }
+  .sidebar a { padding: 6px 4px; }
+}
+
 .sidebar a.active {
   background: #2563eb;
   color: #fff;
