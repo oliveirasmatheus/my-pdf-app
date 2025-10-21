@@ -4,57 +4,56 @@ const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
-const libre = require('libreoffice-convert');
+const libre = require("libreoffice-convert");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// List of allowed origins (production and local dev)
+// Define the allowed origins (both prod and dev)
 const allowedOrigins = [
-  'https://arqwillianoliveira.com.br',  // Production frontend domain
-  'http://localhost:5173',              // Local development frontend domain
+  "https://arqwillianoliveira.com.br", // Frontend production domain
+  "http://localhost:5173", // Local development domain
 ];
 
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);  // Allow the request from the allowed origin
+      // Allow the request if origin is in the list or it's a non-browser request (like Postman)
+      callback(null, true);
     } else {
       console.error("CORS error: Origin not allowed:", origin);
-      callback(new Error('Not allowed by CORS'));  // Deny the request if origin is not allowed
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],  // Allow these HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Allow these headers in the request
-  preflightContinue: false,  // Preflight request handling is done by the middleware
+  methods: ["GET", "POST", "OPTIONS"], // Allow GET, POST, and OPTIONS (preflight)
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
+  preflightContinue: true, // Make sure OPTIONS requests are handled correctly
 };
 
-// Use CORS middleware globally with the configured options
+// Apply the CORS middleware globally
 app.use(cors(corsOptions));
 
-// Middleware to parse JSON bodies
+// Parse JSON requests
 app.use(express.json());
 
-// Serve .docx templates for download
-app.get('/templates/:name', (req, res) => {
+// Serve raw .docx templates
+app.get("/templates/:name", (req, res) => {
   const name = req.params.name;
-  const filePath = path.join(__dirname, 'templates', `${name}.docx`);
-
+  const filePath = path.join(__dirname, "templates", `${name}.docx`);
   if (!fs.existsSync(filePath)) {
-    console.error('Template not found:', filePath);
-    return res.status(404).send('Template not found');
+    console.error("Template not found:", filePath);
+    return res.status(404).send("Template not found");
   }
-
   res.sendFile(filePath, (err) => {
     if (err) {
-      console.error('Error sending template:', err);
-      res.status(err.status || 500).send('Failed to send template');
+      console.error("Error sending template:", err);
+      res.status(err.status || 500).send("Failed to send template");
     }
   });
 });
 
-// POST route to generate documents (DOCX or PDF)
+// Handle document generation
 app.post("/generate", (req, res) => {
   const { templateName, data } = req.body;
 
@@ -77,16 +76,18 @@ app.post("/generate", (req, res) => {
   try {
     const template = fs.readFileSync(templatePath, "binary");
     const zip = new PizZip(template);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
 
-    // Convert all values to strings to avoid errors with undefined or null
+    // Convert all values to strings to avoid undefined/null errors
     const safeData = {};
     Object.keys(data).forEach((key) => {
       const val = data[key];
       safeData[key] = val !== undefined && val !== null ? String(val) : "";
     });
 
-    // Render the document with the safe data
     try {
       doc.render(safeData);
     } catch (error) {
@@ -95,33 +96,33 @@ app.post("/generate", (req, res) => {
           console.error("Template error:", e.properties.explanation);
         });
       }
-      console.error("Template rendering error:", error);
-      return res.status(500).send("Failed to render document.");
+      console.error("Full template error:", error);
+      return res.status(500).send("Failed to render the document.");
     }
 
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
-    // Check if client requested PDF (by body.output or query.format)
-    const wantsPdf = (req.body && req.body.output === 'pdf') || (req.query && req.query.format === 'pdf');
+    // Check if PDF is requested
+    const wantsPdf = req.body.output === "pdf" || req.query.format === "pdf";
     if (wantsPdf) {
       try {
-        libre.convert(buf, '.pdf', undefined, (err, pdfBuf) => {
+        libre.convert(buf, ".pdf", undefined, (err, pdfBuf) => {
           if (err) {
-            console.error('Conversion to PDF failed. Is LibreOffice installed on the host?', err);
-            return res.status(500).send('Failed to convert to PDF. Ensure LibreOffice is installed on the server.');
+            console.error("PDF conversion failed:", err);
+            return res.status(500).send("Failed to convert to PDF. Ensure LibreOffice is installed.");
           }
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename=${templateName}.pdf`);
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `attachment; filename=${templateName}.pdf`);
           res.send(pdfBuf);
         });
         return;
       } catch (convErr) {
-        console.error('Conversion error', convErr);
-        return res.status(500).send('PDF conversion error');
+        console.error("Conversion error:", convErr);
+        return res.status(500).send("PDF conversion error");
       }
     }
 
-    // Default response: send DOCX file
+    // Default response is DOCX
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     res.setHeader("Content-Disposition", `attachment; filename=${templateName}.docx`);
     res.send(buf);
