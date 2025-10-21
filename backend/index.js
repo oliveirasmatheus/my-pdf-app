@@ -9,26 +9,43 @@ const libre = require('libreoffice-convert');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS setup - allow requests only from your domain
+// List of allowed origins (production and local dev)
+const allowedOrigins = [
+  'https://arqwillianoliveira.com.br',  // Production frontend domain
+  'http://localhost:5173',              // Local development frontend domain
+];
+
+// CORS configuration
 const corsOptions = {
-  origin: 'https://arqwillianoliveira.com.br', // Specify the allowed origin
-  methods: ['GET', 'POST'], // Allow only GET and POST methods
-  allowedHeaders: ['Content-Type'], // Allow only specific headers
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);  // Allow the request from the allowed origin
+    } else {
+      console.error("CORS error: Origin not allowed:", origin);
+      callback(new Error('Not allowed by CORS'));  // Deny the request if origin is not allowed
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],  // Allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'],  // Allow these headers in the request
+  preflightContinue: false,  // Preflight request handling is done by the middleware
 };
 
-// Use CORS middleware with the options defined above
+// Use CORS middleware globally with the configured options
 app.use(cors(corsOptions));
 
+// Middleware to parse JSON bodies
 app.use(express.json());
 
-// Serve raw .docx templates so frontend can fetch them (e.g. GET /templates/procuracao)
+// Serve .docx templates for download
 app.get('/templates/:name', (req, res) => {
   const name = req.params.name;
   const filePath = path.join(__dirname, 'templates', `${name}.docx`);
+
   if (!fs.existsSync(filePath)) {
     console.error('Template not found:', filePath);
     return res.status(404).send('Template not found');
   }
+
   res.sendFile(filePath, (err) => {
     if (err) {
       console.error('Error sending template:', err);
@@ -37,6 +54,7 @@ app.get('/templates/:name', (req, res) => {
   });
 });
 
+// POST route to generate documents (DOCX or PDF)
 app.post("/generate", (req, res) => {
   const { templateName, data } = req.body;
 
@@ -48,7 +66,7 @@ app.post("/generate", (req, res) => {
     return res.status(400).send("Missing or invalid data");
   }
 
-  console.log("Data recebida para template:", data);
+  console.log("Data received for template:", data);
 
   const templatePath = path.join(__dirname, "templates", `${templateName}.docx`);
 
@@ -59,35 +77,31 @@ app.post("/generate", (req, res) => {
   try {
     const template = fs.readFileSync(templatePath, "binary");
     const zip = new PizZip(template);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-    });
+    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
-    // Converte todos os valores para string para evitar erros com undefined/null
+    // Convert all values to strings to avoid errors with undefined or null
     const safeData = {};
     Object.keys(data).forEach((key) => {
       const val = data[key];
       safeData[key] = val !== undefined && val !== null ? String(val) : "";
     });
 
-    // 🚀 Novo padrão: render diretamente com os dados
+    // Render the document with the safe data
     try {
       doc.render(safeData);
     } catch (error) {
       if (error.properties && error.properties.errors) {
         error.properties.errors.forEach((e) => {
-          console.error("Erro no template:", e.properties.explanation);
+          console.error("Template error:", e.properties.explanation);
         });
       }
-      console.error("Erro completo do template:", error);
-      return res.status(500).send("Falha ao renderizar o documento.");
+      console.error("Template rendering error:", error);
+      return res.status(500).send("Failed to render document.");
     }
 
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
-    // If the client requests PDF (body.output === 'pdf' or ?format=pdf), convert
-    // the generated DOCX buffer to PDF using libreoffice-convert and return PDF.
+    // Check if client requested PDF (by body.output or query.format)
     const wantsPdf = (req.body && req.body.output === 'pdf') || (req.query && req.query.format === 'pdf');
     if (wantsPdf) {
       try {
@@ -107,11 +121,8 @@ app.post("/generate", (req, res) => {
       }
     }
 
-    // Default: send DOCX
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
+    // Default response: send DOCX file
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     res.setHeader("Content-Disposition", `attachment; filename=${templateName}.docx`);
     res.send(buf);
   } catch (err) {
@@ -120,6 +131,7 @@ app.post("/generate", (req, res) => {
   }
 });
 
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
