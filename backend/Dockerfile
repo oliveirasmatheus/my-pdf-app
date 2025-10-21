@@ -1,10 +1,10 @@
-# Use the libreoffice image
-FROM libreoffice/online:latest
+# Use the official Ubuntu image as a base
+FROM ubuntu:20.04
 
-# Ensure we run as root to install packages
-USER root
+# Set non-interactive mode to avoid prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies and upgrade Node.js to a more recent version
+# Update apt-get and install dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg2 \
@@ -12,20 +12,15 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     libreoffice
 
-# Install Node.js 16 from NodeSource (compatible with npm@8)
+# Install Node.js 16 (already comes with npm)
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs
-
-# Install npm version 8 (compatible with Node.js 16)
-RUN npm install -g npm@8
 
 # Set working directory for the app
 WORKDIR /usr/src/app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-
-# Run npm ci (since we upgraded npm to a compatible version)
 RUN npm ci --production
 
 # Copy the rest of the backend files
