@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     gnupg2 \
     lsb-release \
-    ca-certificates
+    ca-certificates \
+    libreoffice
 
 # Install Node.js 16 from NodeSource (compatible with npm@8)
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
