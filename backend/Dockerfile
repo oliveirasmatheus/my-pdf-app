@@ -4,8 +4,16 @@ FROM libreoffice/online:latest
 # Ensure we run as root to install packages
 USER root
 
-# Set up Node environment on top of the LibreOffice image
-RUN apt-get update && apt-get install -y nodejs npm
+# Install dependencies and upgrade Node.js to a more recent version
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg2 \
+    lsb-release \
+    ca-certificates
+
+# Install Node.js 16 from NodeSource (compatible with npm@latest)
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs
 
 # Upgrade npm to the latest version
 RUN npm install -g npm@latest
