@@ -9,7 +9,16 @@ const libre = require('libreoffice-convert');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS setup - allow requests only from your domain
+const corsOptions = {
+  origin: 'https://arqwillianoliveira.com.br', // Specify the allowed origin
+  methods: ['GET', 'POST'], // Allow only GET and POST methods
+  allowedHeaders: ['Content-Type'], // Allow only specific headers
+};
+
+// Use CORS middleware with the options defined above
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Serve raw .docx templates so frontend can fetch them (e.g. GET /templates/procuracao)
