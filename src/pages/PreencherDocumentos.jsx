@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import db from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import './PreencherDocumentos.css';
-// Note: server-side PDF conversion will be requested; keep frontend simple
 
 export default function PreencherDocumentos() {
   const [clientes, setClientes] = useState([]);
@@ -12,9 +11,7 @@ export default function PreencherDocumentos() {
   const [selectedPdf, setSelectedPdf] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  function Spinner() {
-    return <span className="pd-spinner" aria-hidden="true" />;
-  }
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const pdfTemplates = [
     { value: 'procuracao', label: 'Procuração' },
@@ -38,10 +35,26 @@ export default function PreencherDocumentos() {
     { value: 'regularizacao_obra', label: 'Regularização de obra' },
   ];
 
-  const API_URL = import.meta.env.VITE_API_URL;
-  const resolvedApiUrl = (API_URL || 'http://localhost:3001').replace(/\/$/, '');
-  // expose for quick debugging
-  if (typeof window !== 'undefined') window.__VITE_API_URL = resolvedApiUrl;
+  const terrainRequiredTemplates = [
+    'aprovacao_projeto',
+    'certidao_confrontacoes',
+    'levantamento_cadastral',
+    'ampliacao_construcao',
+    'demolicao_predio',
+    'vistoria',
+    'certidao_lancamento',
+    'habite_se',
+    'certidao_valor_venal',
+    'unificacao_lote',
+    'levantamento_cadastral_2',
+    'certidao_demolicao',
+    'desmembramento_lote',
+    'regularizacao_obra',
+  ];
+
+  function Spinner() {
+    return <span className="pd-spinner" aria-hidden="true" />;
+  }
 
   useEffect(() => {
     const fetchClientes = async () => {
@@ -94,28 +107,9 @@ export default function PreencherDocumentos() {
       return;
     }
 
-    // Optional: If terreno is required for certain templates, add condition here
-    if (!terreno) {
-      const terrainRequiredTemplates = [
-        'aprovacao_projeto',
-        'certidao_confrontacoes',
-        'levantamento_cadastral',
-        'ampliacao_construcao',
-        'demolicao_predio',
-        'vistoria',
-        'certidao_lancamento',
-        'habite_se',
-        'certidao_valor_venal',
-        'unificacao_lote',
-        'levantamento_cadastral_2',
-        'certidao_demolicao',
-        'desmembramento_lote',
-        'regularizacao_obra',
-      ];
-      if (terrainRequiredTemplates.includes(selectedPdf)) {
-        alert('Por favor, selecione um terreno.');
-        return;
-      }
+    if (!terreno && terrainRequiredTemplates.includes(selectedPdf)) {
+      alert('Por favor, selecione um terreno.');
+      return;
     }
 
     const today = new Date();
@@ -127,63 +121,61 @@ export default function PreencherDocumentos() {
     ];
     const mes = meses[today.getMonth()];
 
-    let templateName = selectedPdf;
-    if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
-      templateName = 'procuracaoSemEmpresa';
-    }
-
-    const dataToSend = {
-      nome: cliente.nome,
-      cpf: cliente.cpf,
-      rg: cliente.rg,
-      cnh: cliente.cnh,
-      dataNascimento: cliente.dataNascimento,
-      profissao: cliente.profissao,
-      enderecoResidencial: cliente.enderecoResidencial,
-      estadoCivil: cliente.estadoCivil,
-      razaoSocial: cliente.empresa?.razaoSocial || '',
-      cnpj: cliente.empresa?.cnpj || '',
-      enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
-      dia,
-      mes,
-      ano
-    };
-
-    if (terreno) {
-      dataToSend.endereco = terreno.endereco;
-      dataToSend.setor = terreno.setor;
-      dataToSend.quadra = terreno.quadra;
-      dataToSend.lote = terreno.lote;
-    }
-
-    // New flow: request server-side PDF conversion (backend will render DOCX and convert to PDF)
-    setIsGenerating(true);
     try {
-      const url = `${resolvedApiUrl}/generate`;
-      console.log('Requesting PDF from', url);
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateName, data: dataToSend, output: 'pdf' }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(text || `${response.status} ${response.statusText}`);
+      let templateName = selectedPdf;
+      if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
+        templateName = 'procuracaoSemEmpresa';
       }
 
-  const blob = await response.blob();
-  const blobUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = blobUrl;
-  // create a safe filename: selectedPdf + client name (spaces -> underscores, strip unsafe chars)
-  const rawName = `${selectedPdf}_${cliente.nome || 'document'}`;
-  const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
-  a.download = `${safeName}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+      const dataToSend = {
+        nome: cliente.nome,
+        cpf: cliente.cpf,
+        rg: cliente.rg,
+        cnh: cliente.cnh,
+        dataNascimento: cliente.dataNascimento,
+        profissao: cliente.profissao,
+        enderecoResidencial: cliente.enderecoResidencial,
+        estadoCivil: cliente.estadoCivil,
+        razaoSocial: cliente.empresa?.razaoSocial || '',
+        cnpj: cliente.empresa?.cnpj || '',
+        enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
+        dia,
+        mes,
+        ano
+      };
+
+      if (terreno) {
+        dataToSend.endereco = terreno.endereco;
+        dataToSend.setor = terreno.setor;
+        dataToSend.quadra = terreno.quadra;
+        dataToSend.lote = terreno.lote;
+      }
+
+      setIsGenerating(true);
+      const response = await fetch(`${API_URL}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateName,
+          data: dataToSend
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erro ao gerar documento");
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      
+      const rawName = `${selectedPdf}_${cliente.nome || 'document'}`;
+      const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+      a.download = `${safeName}.pdf`;
+      
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
 
     } catch (error) {
       console.error('Erro ao gerar o documento:', error);
@@ -193,77 +185,74 @@ export default function PreencherDocumentos() {
     }
   };
 
-
-
   return (
     <div className="cadastro-container">
-  <h2>Preencher Documentos</h2>
+      <h2>Preencher Documentos</h2>
 
-  <div className="form-cliente">
-  <div style={{ padding: 0 }}>
-  <div className="form-group">
-        <label>
-          Selecionar Documento:
-          <select
-            value={selectedPdf}
-            onChange={(e) => setSelectedPdf(e.target.value)}
+      <div className="form-cliente">
+        <div style={{ padding: 0 }}>
+          <div className="form-group">
+            <label>
+              Selecionar Documento:
+              <select
+                value={selectedPdf}
+                onChange={(e) => setSelectedPdf(e.target.value)}
+              >
+                <option value="">-- Selecione --</option>
+                {pdfTemplates.map((pdf) => (
+                  <option key={pdf.value} value={pdf.value}>
+                    {pdf.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              Selecionar Cliente:
+              <select
+                value={selectedClienteId}
+                onChange={(e) => setSelectedClienteId(e.target.value)}
+              >
+                <option value="">-- Selecione --</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>
+                    {cliente.nome}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              Selecionar Terreno:
+              <select
+                value={selectedTerrenoId}
+                onChange={(e) => setSelectedTerrenoId(e.target.value)}
+                disabled={!terrenos.length}
+              >
+                <option value="">-- Selecione --</option>
+                {terrenos.map((terreno) => (
+                  <option key={terreno.id} value={terreno.id}>
+                    {terreno.endereco} - Setor {terreno.setor}, Quadra {terreno.quadra}, Lote {terreno.lote}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <button
+            onClick={handleGenerateDocument}
+            type="button"
+            className="submit-btn"
+            disabled={isGenerating}
           >
-            <option value="">-- Selecione --</option>
-            {pdfTemplates.map((pdf) => (
-              <option key={pdf.value} value={pdf.value}>
-                {pdf.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            {isGenerating ? 'Gerando...' : 'Gerar Documento'} {isGenerating && <Spinner />}
+          </button>
+        </div>
       </div>
-
-      <div className="form-group">
-        <label>
-          Selecionar Cliente:
-          <select
-            value={selectedClienteId}
-            onChange={(e) => setSelectedClienteId(e.target.value)}
-          >
-            <option value="">-- Selecione --</option>
-            {clientes.map((cliente) => (
-              <option key={cliente.id} value={cliente.id}>
-                {cliente.nome}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="form-group">
-        <label>
-          Selecionar Terreno:
-          <select
-            value={selectedTerrenoId}
-            onChange={(e) => setSelectedTerrenoId(e.target.value)}
-            disabled={!terrenos.length}
-          >
-            <option value="">-- Selecione --</option>
-            {terrenos.map((terreno) => (
-              <option key={terreno.id} value={terreno.id}>
-                {terreno.endereco} - Setor {terreno.setor}, Quadra {terreno.quadra}, Lote {terreno.lote}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <button
-        onClick={handleGenerateDocument}
-        type="button"
-        className="submit-btn"
-        disabled={isGenerating}
-      >
-        {isGenerating ? 'Gerando...' : 'Gerar Documento'} {isGenerating && <Spinner />}
-      </button>
-      </div>
-      </div>
-      {/* generation handled server-side now; no hidden container required */}
     </div>
   );
 }
