@@ -1,28 +1,22 @@
-# Use a stable Node image based on Debian so we can apt-get LibreOffice
-FROM node:22-bullseye-slim
+# Use a prebuilt LibreOffice image as the base
+FROM libreoffice/online:latest
 
-# Install LibreOffice and basic fonts. Keep image small and clean up apt lists.
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-    libreoffice-writer \
-    libreoffice-common \
-    libreoffice-core \
-    fonts-dejavu-core \
-  && rm -rf /var/lib/apt/lists/*
+# Set up Node environment on top of the LibreOffice image
+RUN apt-get update && apt-get install -y nodejs npm
 
-# Create app directory
+# Set working directory for the app
 WORKDIR /usr/src/app
 
-# Install production dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm ci --production
 
-# Copy rest of backend
+# Copy rest of the backend files
 COPY . .
 
-# Use the same port the app expects (default in your index.js was 10000)
+# Expose the desired port
 EXPOSE 10000
 ENV PORT=10000
 
-# Start the server
+# Start the app
 CMD ["node", "index.js"]
