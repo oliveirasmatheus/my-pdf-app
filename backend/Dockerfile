@@ -1,6 +1,9 @@
 # Use a prebuilt LibreOffice image as the base
 FROM libreoffice/online:latest
 
+# Ensure we're running with root privileges to install packages
+USER root
+
 # Set up Node environment on top of the LibreOffice image
 RUN apt-get update && apt-get install -y nodejs npm
 
@@ -11,7 +14,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci --production
 
-# Copy rest of the backend files
+# Copy the rest of the backend files
 COPY . .
 
 # Expose the desired port
