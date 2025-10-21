@@ -1,17 +1,22 @@
-# Use a prebuilt LibreOffice image as the base
+# Use the libreoffice image
 FROM libreoffice/online:latest
 
-# Ensure we're running with root privileges to install packages
+# Ensure we run as root to install packages
 USER root
 
 # Set up Node environment on top of the LibreOffice image
 RUN apt-get update && apt-get install -y nodejs npm
+
+# Upgrade npm to the latest version
+RUN npm install -g npm@latest
 
 # Set working directory for the app
 WORKDIR /usr/src/app
 
 # Copy package files and install dependencies
 COPY package*.json ./
+
+# Run npm ci (since we upgraded npm to a newer version)
 RUN npm ci --production
 
 # Copy the rest of the backend files
