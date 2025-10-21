@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Update package list
-apt-get update
+echo "This script is intentionally a no-op in CI."
+echo "When deploying to a Docker-capable host, use the provided Dockerfile in backend/Dockerfile which installs LibreOffice." 
+echo "For local development on Debian/Ubuntu you can run: sudo apt-get update && sudo apt-get install -y libreoffice"
 
-# Install LibreOffice
-apt-get install -y libreoffice
-
-# Now, start the Node.js backend (use npm start or the relevant start command)
-npm start
+exit 0
