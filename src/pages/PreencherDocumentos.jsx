@@ -10,6 +10,7 @@ export default function PreencherDocumentos() {
   const [selectedTerrenoId, setSelectedTerrenoId] = useState('');
   const [selectedPdf, setSelectedPdf] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingType, setGeneratingType] = useState(null); // 'word' or 'pdf'
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -93,10 +94,10 @@ export default function PreencherDocumentos() {
     fetchTerrenos();
   }, [selectedClienteId]);
 
-  const handleGenerateDocument = async () => {
+  const getDocumentData = () => {
     if (!selectedPdf || !selectedClienteId) {
-      alert('Por favor, selecione o PDF e o cliente.');
-      return;
+      alert('Por favor, selecione o documento e o cliente.');
+      return null;
     }
 
     const cliente = clientes.find(c => c.id === selectedClienteId);
@@ -104,12 +105,12 @@ export default function PreencherDocumentos() {
 
     if (!cliente) {
       alert('Cliente não encontrado.');
-      return;
+      return null;
     }
 
     if (!terreno && terrainRequiredTemplates.includes(selectedPdf)) {
       alert('Por favor, selecione um terreno.');
-      return;
+      return null;
     }
 
     const today = new Date();
@@ -121,37 +122,48 @@ export default function PreencherDocumentos() {
     ];
     const mes = meses[today.getMonth()];
 
+    let templateName = selectedPdf;
+    if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
+      templateName = 'procuracaoSemEmpresa';
+    }
+
+    const dataToSend = {
+      nome: cliente.nome,
+      cpf: cliente.cpf,
+      rg: cliente.rg,
+      cnh: cliente.cnh,
+      dataNascimento: cliente.dataNascimento,
+      profissao: cliente.profissao,
+      enderecoResidencial: cliente.enderecoResidencial,
+      estadoCivil: cliente.estadoCivil,
+      razaoSocial: cliente.empresa?.razaoSocial || '',
+      cnpj: cliente.empresa?.cnpj || '',
+      enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
+      dia,
+      mes,
+      ano
+    };
+
+    if (terreno) {
+      dataToSend.endereco = terreno.endereco;
+      dataToSend.setor = terreno.setor;
+      dataToSend.quadra = terreno.quadra;
+      dataToSend.lote = terreno.lote;
+    }
+
+    return { templateName, dataToSend, cliente };
+  };
+
+  const handleGenerateWord = async () => {
+    const docData = getDocumentData();
+    if (!docData) return;
+
+    const { templateName, dataToSend, cliente } = docData;
+
     try {
-      let templateName = selectedPdf;
-      if (selectedPdf === 'procuracao' && !cliente.possuiEmpresa) {
-        templateName = 'procuracaoSemEmpresa';
-      }
-
-      const dataToSend = {
-        nome: cliente.nome,
-        cpf: cliente.cpf,
-        rg: cliente.rg,
-        cnh: cliente.cnh,
-        dataNascimento: cliente.dataNascimento,
-        profissao: cliente.profissao,
-        enderecoResidencial: cliente.enderecoResidencial,
-        estadoCivil: cliente.estadoCivil,
-        razaoSocial: cliente.empresa?.razaoSocial || '',
-        cnpj: cliente.empresa?.cnpj || '',
-        enderecoEmpresa: cliente.empresa?.enderecoEmpresa || '',
-        dia,
-        mes,
-        ano
-      };
-
-      if (terreno) {
-        dataToSend.endereco = terreno.endereco;
-        dataToSend.setor = terreno.setor;
-        dataToSend.quadra = terreno.quadra;
-        dataToSend.lote = terreno.lote;
-      }
-
       setIsGenerating(true);
+      setGeneratingType('word');
+      
       const response = await fetch(`${API_URL}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -170,6 +182,50 @@ export default function PreencherDocumentos() {
       
       const rawName = `${selectedPdf}_${cliente.nome || 'document'}`;
       const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+      a.download = `${safeName}.docx`;
+      
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+
+    } catch (error) {
+      console.error('Erro ao gerar Word:', error);
+      alert('Erro ao gerar o documento Word. Verifique o console para detalhes.');
+    } finally {
+      setIsGenerating(false);
+      setGeneratingType(null);
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    const docData = getDocumentData();
+    if (!docData) return;
+
+    const { templateName, dataToSend, cliente } = docData;
+
+    try {
+      setIsGenerating(true);
+      setGeneratingType('pdf');
+      
+      const response = await fetch(`${API_URL}/generate-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateName,
+          data: dataToSend
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erro ao gerar PDF");
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      
+      const rawName = `${selectedPdf}_${cliente.nome || 'document'}`;
+      const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
       a.download = `${safeName}.pdf`;
       
       document.body.appendChild(a);
@@ -178,10 +234,11 @@ export default function PreencherDocumentos() {
       setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
 
     } catch (error) {
-      console.error('Erro ao gerar o documento:', error);
-      alert('Erro ao gerar o documento. Verifique o console para detalhes.');
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar o documento PDF. Verifique o console para detalhes.');
     } finally {
       setIsGenerating(false);
+      setGeneratingType(null);
     }
   };
 
@@ -243,14 +300,24 @@ export default function PreencherDocumentos() {
             </label>
           </div>
 
-          <button
-            onClick={handleGenerateDocument}
-            type="button"
-            className="submit-btn"
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Gerando...' : 'Gerar Documento'} {isGenerating && <Spinner />}
-          </button>
+          <div className="button-group">
+            <button
+              onClick={handleGenerateWord}
+              type="button"
+              className="submit-btn"
+              disabled={isGenerating}
+            >
+              {isGenerating && generatingType === 'word' ? 'Gerando...' : 'Gerar Word'} {isGenerating && generatingType === 'word' && <Spinner />}
+            </button>
+            <button
+              onClick={handleGeneratePDF}
+              type="button"
+              className="submit-btn submit-btn-secondary"
+              disabled={isGenerating}
+            >
+              {isGenerating && generatingType === 'pdf' ? 'Gerando...' : 'Gerar PDF'} {isGenerating && generatingType === 'pdf' && <Spinner />}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -11,11 +11,13 @@ export default function Sidebar() {
       <div className="logo-container">
         {!collapsed ? (
           <>
-            <img src="/logo.png" alt="logo" />
-            <button className="collapse-btn" onClick={() => setCollapsed(true)}><X size={20} /></button>
+            <img src="/logo-full.svg" alt="PDFDocs Logo" className="logo-full" />
+            <button className="collapse-btn" onClick={() => setCollapsed(true)} title="Collapse sidebar"><X size={20} /></button>
           </>
         ) : (
-          <button className="collapse-btn" onClick={() => setCollapsed(false)}><Menu size={20} /></button>
+          <button className="logo-btn" onClick={() => setCollapsed(false)} title="Expand sidebar">
+            <img src="/logo-icon.svg" alt="PDFDocs" className="logo-icon" />
+          </button>
         )}
       </div>
 

@@ -140,6 +140,9 @@ export default function CadastroCliente() {
         id: doc.id,
         ...doc.data(),
       }));
+
+      data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }));
+
       setClientesCadastrados(data);
     } catch (err) {
       console.error('Erro ao buscar clientes:', err);
@@ -220,78 +223,79 @@ export default function CadastroCliente() {
         )}
       </form>
 
-      <div>
-        <h3>Clientes Cadastrados</h3>
+      <h3 className="table-title">Clientes Cadastrados</h3>
+      <div className="table-section">
         {clientesCadastrados.length === 0 ? (
-          <p>Nenhum cliente cadastrado ainda.</p>
+          <div className="empty-state">
+            <p>Nenhum cliente cadastrado ainda.</p>
+          </div>
         ) : (
           <div className="table-responsive">
-          <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>RG</th>
-                <th>CNH</th>
-                <th>Data Nasc.</th>
-                <th>Profissão</th>
-                <th>Endereço Residencial</th>
-                <th>Estado Civil</th>
-                <th>Empresa</th>
-                <th>CNPJ</th>
-                <th>Endereço Empresa</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clientesCadastrados.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.nome}</td>
-                  <td>{c.cpf}</td>
-                  <td>{c.rg}</td>
-                  <td>{c.cnh}</td>
-                  <td>{c.dataNascimento}</td>
-                  <td>{c.profissao}</td>
-                  <td>{c.enderecoResidencial}</td>
-                  <td>{c.estadoCivil}</td>
-                  <td>{c.empresa?.razaoSocial || '-'}</td>
-                  <td>{c.empresa?.cnpj || '-'}</td>
-                  <td>{c.empresa?.enderecoEmpresa || '-'}</td>
-                  <td>
-                    <div className="acoes">
-                      <button className="btn-editar" onClick={() => handleEdit(c)}>Editar</button>
-                      <button className="btn-excluir" onClick={() => handleDelete(c.id)}>Excluir</button>
-                      <button
-                        className="btn-detalhes"
-                        onClick={() => {
-                          // Open the top form in read-only mode on mobile
-                          setCliente({
-                            nome: c.nome,
-                            cpf: c.cpf,
-                            rg: c.rg,
-                            cnh: c.cnh,
-                            dataNascimento: c.dataNascimento,
-                            profissao: c.profissao,
-                            endereco: c.enderecoResidencial,
-                            estadoCivil: c.estadoCivil,
-                            possuiEmpresa: !!c.empresa,
-                            razaoSocial: c.empresa?.razaoSocial || '',
-                            cnpj: c.empresa?.cnpj || '',
-                            enderecoEmpresa: c.empresa?.enderecoEmpresa || '',
-                          });
-                          setViewingId(c.id);
-                          setEditandoId(null);
-                        }}
-                        aria-expanded={viewingId === c.id}
-                      >
-                        Detalhes
-                      </button>
-                    </div>
-                  </td>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>CPF</th>
+                  <th>RG</th>
+                  <th>CNH</th>
+                  <th>Data Nasc.</th>
+                  <th>Profissão</th>
+                  <th>Endereço Residencial</th>
+                  <th>Estado Civil</th>
+                  <th>Empresa</th>
+                  <th>CNPJ</th>
+                  <th>Endereço Empresa</th>
+                  <th>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {clientesCadastrados.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.nome}</td>
+                    <td>{c.cpf}</td>
+                    <td>{c.rg}</td>
+                    <td>{c.cnh}</td>
+                    <td>{c.dataNascimento}</td>
+                    <td>{c.profissao}</td>
+                    <td>{c.enderecoResidencial}</td>
+                    <td>{c.estadoCivil}</td>
+                    <td>{c.empresa?.razaoSocial || '-'}</td>
+                    <td>{c.empresa?.cnpj || '-'}</td>
+                    <td>{c.empresa?.enderecoEmpresa || '-'}</td>
+                    <td>
+                      <div className="acoes">
+                        <button className="btn-editar" onClick={() => handleEdit(c)}>Editar</button>
+                        <button className="btn-excluir" onClick={() => handleDelete(c.id)}>Excluir</button>
+                        <button
+                          className="btn-detalhes"
+                          onClick={() => {
+                            setCliente({
+                              nome: c.nome,
+                              cpf: c.cpf,
+                              rg: c.rg,
+                              cnh: c.cnh,
+                              dataNascimento: c.dataNascimento,
+                              profissao: c.profissao,
+                              endereco: c.enderecoResidencial,
+                              estadoCivil: c.estadoCivil,
+                              possuiEmpresa: !!c.empresa,
+                              razaoSocial: c.empresa?.razaoSocial || '',
+                              cnpj: c.empresa?.cnpj || '',
+                              enderecoEmpresa: c.empresa?.enderecoEmpresa || '',
+                            });
+                            setViewingId(c.id);
+                            setEditandoId(null);
+                          }}
+                          aria-expanded={viewingId === c.id}
+                        >
+                          Detalhes
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

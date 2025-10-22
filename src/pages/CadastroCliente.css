@@ -1,29 +1,37 @@
 .cadastro-container {
-  padding: 2rem;
-  font-family: 'Segoe UI', sans-serif;
-    width: 100%;
-  height: 100%;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  width: 100%;
   box-sizing: border-box;
 }
 
 .form-cliente {
-  background: #f7f7f7;
+  background: #ffffff;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-bottom: 2rem;
-  width: 100%;      /* ocupa todo o espaço do container */
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 5px 10px -5px rgba(0, 0, 0, 0.04);
+  margin-bottom: 2.5rem;
+  width: 100%;
   box-sizing: border-box;
+  border: 1px solid #e2e8f0;
 }
 
 h2, h3 {
   margin-bottom: 1.5rem;
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-top: 0;
 }
 
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
 
@@ -31,173 +39,433 @@ input[type="text"],
 input[type="date"],
 input[type="number"],
 input[type="email"],
-input[type="password"],
-input::placeholder {
+input[type="password"] {
   font-size: 1rem;
 }
 
 input, select {
-  padding: 0.75rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
   width: 100%;
   box-sizing: border-box;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), inset 0 0 0 1px rgba(59, 130, 246, 0.2);
+  background-color: #eff6ff;
+}
+
+input:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
 }
 
 .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.checkbox-container label {
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
 }
 
 .checkbox-container input[type="checkbox"] {
-  width: auto;
-  margin: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #3b82f6;
 }
 
-
 .submit-btn {
-  padding: 0.8rem 1.5rem;
-  background-color: #4a90e2;
+  padding: 0.95rem 2rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   color: white;
   font-size: 1rem;
+  font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
 }
 
 .submit-btn:hover {
-  background-color: #357abd;
-}
-/* Ações centralizadas na vertical */
-.acoes {
-  display: flex;
-  flex-direction: column; /* empilha os botões na vertical */
-  justify-content: center;
-  align-items: center;
-  gap: 6px; /* espaço entre eles */
-  border: none; /* remove borda extra da célula */
+  background: linear-gradient(135deg, #1e40af 0%, #6d28d9 100%);
+  box-shadow: 0 15px 30px rgba(59, 130, 246, 0.35);
+  transform: translateY(-2px);
 }
 
-/* Botão base */
-.btn-editar,
-.btn-excluir {
-  width: 90px; /* largura fixa pra ficarem iguais */
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s;
+.submit-btn:active {
+  transform: translateY(0);
 }
 
-/* Editar */
-.btn-editar {
-  background-color: #007bff;
-}
-.btn-editar:hover {
-  background-color: #0056b3;
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Excluir */
-.btn-excluir {
-  background-color: #dc3545;
-}
-.btn-excluir:hover {
-  background-color: #a71d2a;
+/* ===== TABLE STYLES ===== */
+.table-title {
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
-/* Responsive tables: allow horizontal scroll on small screens */
+.table-title:first-of-type {
+  margin-top: 0;
+}
+
+.table-section {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 5px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Make the first column sticky so users can see the name while scrolling horizontally */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .table-responsive table {
   width: 100%;
   border-collapse: collapse;
+  background: transparent;
 }
+
+.table-responsive thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-responsive thead th {
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-responsive tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.table-responsive tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-responsive tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-responsive tbody td {
+  padding: 1.25rem 1rem;
+  color: #475569;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+/* Sticky first column */
 .table-responsive thead th:first-child,
 .table-responsive tbody td:first-child {
-  position: -webkit-sticky; /* Safari */
   position: sticky;
   left: 0;
-  background: white;
-  z-index: 2;
-  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+  background: #ffffff;
+  z-index: 9;
+  font-weight: 600;
+  color: #1e293b;
 }
 
-/* Hide less important columns on very small screens to reduce horizontal width */
-@media (max-width: 480px) {
+.table-responsive tbody tr:hover td:first-child {
+  background: #f8fafc;
+}
 
-  /* On very small screens, show only Nome (1) and Ações (last). Hide others */
+.table-responsive thead th:first-child {
+  background: #f1f5f9;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.acoes {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+}
+
+.btn-editar,
+.btn-excluir,
+.btn-detalhes {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-editar {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  min-width: 80px;
+}
+
+.btn-editar:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-editar:active {
+  transform: translateY(0);
+}
+
+.btn-excluir {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  min-width: 80px;
+}
+
+.btn-excluir:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-excluir:active {
+  transform: translateY(0);
+}
+
+.btn-detalhes {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  display: none;
+}
+
+.btn-detalhes:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-detalhes:active {
+  transform: translateY(0);
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #94a3b8;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
   .table-responsive thead th,
   .table-responsive tbody td {
-    display: table-cell; /* reset */
+    padding: 1rem 0.75rem;
+    font-size: 0.9rem;
   }
-  /* Hide all columns except first and last */
+
+  .btn-editar,
+  .btn-excluir {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cadastro-container {
+    padding: 0;
+  }
+
+  .form-cliente {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .table-responsive table {
+    font-size: 0.9rem;
+  }
+
+  .table-responsive thead th,
+  .table-responsive tbody td {
+    padding: 0.875rem 0.75rem;
+  }
+
+  .acoes {
+    flex-direction: row;
+    gap: 0.4rem;
+  }
+
+  .btn-editar,
+  .btn-excluir {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+    min-width: auto;
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .btn-detalhes {
+    display: inline-block;
+  }
+
   .table-responsive thead th:not(:first-child):not(:last-child),
   .table-responsive tbody td:not(:first-child):not(:last-child) {
     display: none;
   }
 
-  /* Make action buttons more compact */
   .acoes {
-    gap: 4px;
+    flex-direction: column;
+    gap: 0.5rem;
   }
-  .btn-editar, .btn-excluir { padding: 6px 6px; font-size: 13px; }
+
+  .btn-editar,
+  .btn-excluir {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .table-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .table-responsive thead th,
+  .table-responsive tbody td {
+    padding: 0.75rem 0.5rem;
+  }
 }
 
-/* For slightly larger phones, allow readable table but keep scroll */
-@media (max-width: 768px) {
-  table { font-size: 14px; }
-}
+@media (max-width: 480px) {
+  .cadastro-container {
+    padding: 0;
+  }
 
-/* Details row styles (visible when a row is expanded on mobile) */
-.details-row td {
-  background: #fafafa;
-  padding: 10px 12px;
-}
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px 16px;
-}
-
-/* Detalhes button: hidden on desktop, visible on small screens */
-.btn-detalhes {
-  display: none;
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 6px 8px;
-  border-radius: 6px;
-}
-
-@media (max-width: 600px) {
-  .btn-detalhes { display: inline-block; }
-}
-
-@media (max-width: 600px) {
   .form-cliente {
     padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
   }
 
-  table {
-    font-size: 13px;
+  h2, h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
-  .acoes {
-    flex-direction: row;
-    gap: 6px;
+  .table-responsive table {
+    font-size: 0.85rem;
   }
 
-  .btn-editar, .btn-excluir {
-    width: auto;
-    padding: 6px 8px;
+  .table-responsive thead th,
+  .table-responsive tbody td {
+    padding: 0.6rem 0.4rem;
   }
+
+  .btn-editar,
+  .btn-excluir,
+  .btn-detalhes {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .table-header {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Details row styles */
+.details-row td {
+  background: #f8fafc;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.details-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.details-grid label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.details-grid span {
+  color: #1e293b;
+  font-size: 0.95rem;
 }

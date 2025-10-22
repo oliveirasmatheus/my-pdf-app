@@ -41,8 +41,6 @@ export default function HomeDoc() {
 
         <div className="card">
           <h2>Gerar Documento</h2>
-          {/* String invisível para alinhar o botão */}
-          <p style={{ visibility: 'hidden', margin: 15 }}>Espaço</p>
           <button onClick={() => navigate('/preencher-documentos')}>Ir para Geração</button>
         </div>
 

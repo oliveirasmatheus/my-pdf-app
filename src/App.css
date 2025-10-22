@@ -14,81 +14,126 @@ html, body, #root {
   min-height: 100vh;
 }
 
-
+/* ----- MODERN LIGHT THEME COLOR PALETTE ----- */
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #1e40af;
+  --primary-light: #60a5fa;
+  --secondary: #8b5cf6;
+  --accent: #ec4899;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px -1px rgba(0, 0, 0, 0.06);
+}
 
 /* ----- LAYOUT DO DASHBOARD (sidebar + conteúdo) ----- */
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
 }
 
-/* Sidebar fixa */
+/* Sidebar fixa - Modern Light Theme */
 .sidebar {
-  width: 250px;                 /* fixa a largura */
-  background-color: #1e1e2f;
-  color: #fff;
-  padding: 1rem;
+  width: 260px;
+  background: #ffffff;
+  color: var(--text-primary);
+  padding: 1.5rem 1rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* allow sidebar grow but not overflow page */
-  max-height: 100vh;
-  overflow: auto;    /* internal scroll if content is tall */
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Conteúdo ocupa o resto com scroll só aqui */
 .main-content {
   flex-grow: 1;
-  background: #f3f4f6;
-  padding: 20px;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  padding: 2rem;
   overflow-y: auto;
-  transition: all 0.3s;
+  overflow-x: hidden;
+  transition: all 0.3s ease;
+  height: 100vh;
+}
+
+/* Scrollbar styling */
+.main-content::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .app-shell {
-    flex-direction: column; /* sidebar becomes top bar */
+    flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
     height: auto;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
-    position: sticky; /* keep at top but take space */
+    position: sticky;
     top: 0;
     z-index: 50;
-    /* override desktop full-height on mobile */
     min-height: auto;
     max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .main-content {
-    padding: 12px;
+    padding: 1.5rem;
     height: auto;
-    /* ensure main content is not covered by the topbar */
-    padding-top: 72px; /* adjust if your header height differs */
+    padding-top: 72px;
   }
 
-  /* Reduce horizontal padding on very small devices to maximize content width */
   @media (max-width: 480px) {
     .main-content {
-      padding-left: 8px;
-      padding-right: 8px;
+      padding-left: 1rem;
+      padding-right: 1rem;
       padding-top: 68px;
     }
 
-    /* Containers like .cadastro-container should tighten spacing */
     .cadastro-container {
-      padding-left: 12px;
-      padding-right: 12px;
+      padding-left: 0;
+      padding-right: 0;
     }
   }
 
-  /* make sure content doesn't hide under fixed headers */
   .main-content--with-topbar {
     padding-top: 12px;
   }

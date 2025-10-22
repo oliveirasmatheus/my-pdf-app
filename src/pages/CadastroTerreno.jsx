@@ -171,63 +171,65 @@ export default function CadastroTerreno() {
         )}
       </form>
 
-      <div>
-        <h3>Terrenos Cadastrados</h3>
+      <h3 className="table-title">Terrenos Cadastrados</h3>
+      <div className="table-section">
         {terrenos.length === 0 ? (
-          <p>Nenhum terreno cadastrado ainda.</p>
+          <div className="empty-state">
+            <p>Nenhum terreno cadastrado ainda.</p>
+          </div>
         ) : (
           <div className="table-responsive">
-          <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Número da Matrícula</th>
-                <th>Setor</th>
-                <th>Quadra</th>
-                <th>Lote</th>
-                <th>Endereço</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {terrenos.map((t) => {
-                const cliente = clientes.find(c => c.id === t.clienteId);
-                return (
-                  <tr key={t.id}>
-                    <td>{cliente ? cliente.nome : '-'}</td>
-                    <td>{t.numeroMatricula}</td>
-                    <td>{t.setor}</td>
-                    <td>{t.quadra}</td>
-                    <td>{t.lote}</td>
-                    <td>{t.endereco}</td>
-                    <td>
-                      <div className="acoes">
-                      <button onClick={() => handleEdit(t)} className="btn-editar">Editar</button>
-                      <button onClick={() => handleDelete(t.id)} className="btn-excluir">Excluir</button>
-                      <button
-                        className="btn-detalhes"
-                        onClick={() => {
-                          setTerreno({
-                            clienteId: t.clienteId,
-                            numeroMatricula: t.numeroMatricula,
-                            setor: t.setor,
-                            quadra: t.quadra,
-                            lote: t.lote,
-                            endereco: t.endereco,
-                          });
-                          setViewingId(t.id);
-                          setEditandoId(null);
-                        }}
-                      >
-                        Detalhes
-                      </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Número da Matrícula</th>
+                  <th>Setor</th>
+                  <th>Quadra</th>
+                  <th>Lote</th>
+                  <th>Endereço</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {terrenos.map((t) => {
+                  const cliente = clientes.find(c => c.id === t.clienteId);
+                  return (
+                    <tr key={t.id}>
+                      <td>{cliente ? cliente.nome : '-'}</td>
+                      <td>{t.numeroMatricula}</td>
+                      <td>{t.setor}</td>
+                      <td>{t.quadra}</td>
+                      <td>{t.lote}</td>
+                      <td>{t.endereco}</td>
+                      <td>
+                        <div className="acoes">
+                          <button onClick={() => handleEdit(t)} className="btn-editar">Editar</button>
+                          <button onClick={() => handleDelete(t.id)} className="btn-excluir">Excluir</button>
+                          <button
+                            className="btn-detalhes"
+                            onClick={() => {
+                              setTerreno({
+                                clienteId: t.clienteId,
+                                numeroMatricula: t.numeroMatricula,
+                                setor: t.setor,
+                                quadra: t.quadra,
+                                lote: t.lote,
+                                endereco: t.endereco,
+                              });
+                              setViewingId(t.id);
+                              setEditandoId(null);
+                            }}
+                          >
+                            Detalhes
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
