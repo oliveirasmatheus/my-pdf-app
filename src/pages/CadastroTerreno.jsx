@@ -39,12 +39,26 @@ export default function CadastroTerreno() {
       id: doc.id,
       ...doc.data(),
     }));
+
+    // Sorting the terrenos by the corresponding cliente's name
+    data.sort((a, b) => {
+      const clienteA = clientes.find(c => c.id === a.clienteId);
+      const clienteB = clientes.find(c => c.id === b.clienteId);
+
+      const nomeA = clienteA ? clienteA.nome : '';
+      const nomeB = clienteB ? clienteB.nome : '';
+      
+      return nomeA.localeCompare(nomeB, 'pt', { sensitivity: 'base' });
+    });
+
     setTerrenos(data);
   };
 
   useEffect(() => {
-    fetchTerrenos();
-  }, []);
+    if (clientes.length > 0) {
+      fetchTerrenos();
+    }
+  }, [clientes]); // Trigger fetching terrenos after clientes have been loaded
 
   // Alteração dos inputs
   const handleChange = (e) => {
